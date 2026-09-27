@@ -1,12 +1,13 @@
 // /<username>: loads the profile and shows the game full screen. A small icon
 // opens the menu (new board, palette, brightness, a few switches, links to
-// #importer and #statistikk). No native dialogs: confirm() and alert() would
+// #utseende, #importer and #statistikk). No native dialogs: confirm() and alert() would
 // light up a dark room.
 
 import { h, icons, normalizeUsername } from './dom.js';
 import { api, mirrorProfile, mirroredProfile, queueGame, flushQueue, local, localCurrent, setLocalCurrent } from './api.js';
 import { BoardView } from './board-view.js';
 import { renderImport, renderStats } from './pages.js';
+import { lookDefaults, clampLook, applyLook, colorResets, renderLookPage } from './look.js';
 import { validatePuzzle, grade, puzzleId, solve, DIFFICULTIES, DIFFICULTY_LABELS } from './engine.js';
 import { solvedPuzzles } from './stats.js';
 
@@ -24,6 +25,7 @@ export const DEFAULT_SETTINGS = {
   brightness: 1,
   highlightSame: true,
   autoRemoveNotes: true,
+  ...lookDefaults(), // sizes, lines, weights, colours (look.js)
 };
 
 export function withDefaults(saved = {}) {
@@ -33,14 +35,16 @@ export function withDefaults(saved = {}) {
   }
   if (!PALETTES.some(([id]) => id === out.palette)) out.palette = DEFAULT_SETTINGS.palette;
   out.brightness = Math.min(1, Math.max(0.2, out.brightness));
-  return out;
+  return { ...out, ...clampLook(saved) };
 }
 
 export function applySettings(s) {
   const root = document.documentElement;
   root.setAttribute('data-palette', s.palette);
   root.style.setProperty('--brightness', s.brightness);
-  local.set('look', { palette: s.palette, brightness: s.brightness });
+  const vars = applyLook(s);
+  // boot.js applies this before paint
+  local.set('look', { palette: s.palette, brightness: s.brightness, style: root.getAttribute('data-style'), vars });
 }
 
 function emptyProfile(name) {
@@ -92,19 +96,27 @@ export async function renderProfile(app, rawName) {
   // ---------------------------------------------------------------------------
   // Actions used by the views
 
-  ctx.updateSettings = async (patch) => {
+  // Settings apply at once; the server gets them 600 ms after the last
+  // change, so dragging a slider does not send a request per step.
+  let settingsTimer = null;
+  const saveSettings = () => {
+    if (!settingsTimer) return;
+    clearTimeout(settingsTimer);
+    settingsTimer = null;
+    mirrorProfile(profile);
+    api.saveSettings(name, ctx.settings, { keepalive: true }).catch(() => {}); // kept locally if offline
+  };
+  ctx.updateSettings = (patch, { now = false } = {}) => {
     ctx.settings = withDefaults({ ...ctx.settings, ...patch });
     profile.settings = ctx.settings;
     applySettings(ctx.settings);
-    mirrorProfile(profile);
     board?.render();
     if (board?.game) board.game.options.autoRemoveNotes = ctx.settings.autoRemoveNotes;
-    try {
-      await api.saveSettings(name, ctx.settings);
-    } catch {
-      // kept locally
-    }
+    clearTimeout(settingsTimer);
+    settingsTimer = setTimeout(saveSettings, 600);
+    if (now) saveSettings();
   };
+  addEventListener('pagehide', saveSettings); // a change right before closing is not lost
 
   // The game in progress: written to the browser on every change, sent to
   // the server at most every 2 s (at once when the page is hidden or closed).
@@ -309,7 +321,7 @@ export async function renderProfile(app, rawName) {
           'aria-label': label,
           'aria-pressed': String(ctx.settings.palette === id),
           onclick: (e) => {
-            ctx.updateSettings({ palette: id });
+            ctx.updateSettings({ palette: id, ...colorResets() }); // a new palette starts from its own colours
             for (const b of swatches.children) b.setAttribute('aria-pressed', String(b === e.currentTarget));
           },
         }, '5')));
@@ -349,6 +361,7 @@ export async function renderProfile(app, rawName) {
       toggle('highlightSame', 'marker like tall'),
       toggle('autoRemoveNotes', 'rydd notater'),
       h('nav', { class: 'links' },
+        link('#utseende', 'utseende'),
         link('#importer', 'importer'),
         link('#statistikk', 'statistikk'),
         h('a', { href: '/?ny' }, name)),
@@ -378,7 +391,7 @@ export async function renderProfile(app, rawName) {
   function show() {
     closeMenu();
     const hash = location.hash.slice(1);
-    const page = hash === 'importer' || hash === 'statistikk' ? hash : 'spill';
+    const page = ['importer', 'statistikk', 'utseende'].includes(hash) ? hash : 'spill';
     if (page !== 'spill' && board) {
       board.destroy();
       board = null;
@@ -403,7 +416,7 @@ export async function renderProfile(app, rawName) {
       }
       return;
     }
-    const content = page === 'importer' ? renderImport(ctx) : renderStats(ctx);
+    const content = page === 'importer' ? renderImport(ctx) : page === 'utseende' ? renderLookPage(ctx) : renderStats(ctx);
     main.replaceChildren(
       h('main', { class: 'page' },
         h('a', { class: 'back', href: '#spill', 'aria-label': 'Tilbake til brettet' }, icons.back()),

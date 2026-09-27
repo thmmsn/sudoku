@@ -212,6 +212,7 @@ class RateLimit {
 }
 
 const newProfileLimit = new RateLimit(RATE_NEW_PROFILES);
+const creating = new Set(); // names counted as new profiles, until they exist
 const importLimit = new RateLimit(RATE_IMPORTS);
 
 function clientIp(req) {
@@ -263,10 +264,14 @@ async function api(req, res, parts) {
   if (resource !== 'users') throw new HttpError(404, 'Ukjent API-rute.');
   if (!name) throw new HttpError(400, 'Ugyldig brukernavn. Bruk 2-30 tegn: a-z, 0-9, æøå, - og _.');
 
-  // Any write to a name that does not exist yet creates the profile.
-  if ((req.method === 'PUT' || req.method === 'POST') && !store.get(name)) {
+  // Any write to a name that does not exist yet creates the profile. A name
+  // counts once: several writes racing to create the same profile (a queue
+  // of games sent after being offline) are one new profile, not many.
+  if ((req.method === 'PUT' || req.method === 'POST') && !store.get(name) && !creating.has(name)) {
     checkBudget();
     if (!newProfileLimit.take(clientIp(req))) throw new HttpError(429, 'For mange nye profiler fra denne adressen. Prøv igjen om en time.');
+    if (creating.size > 10000) creating.clear();
+    creating.add(name);
   }
 
   if (!sub) {

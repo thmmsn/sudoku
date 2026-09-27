@@ -8,6 +8,19 @@ Laget for mobil i et mørkt rom. Skjermen viser bare brettet, en rad med tall og
 
 Like tall markeres tydelig: trykker du på en rute med et tall, får alle ruter med samme tall en svak vask i palettens aksentfarge og et glødende siffer, og notater med det tallet lyser også. Trykker du et tall på tastaturet uten at en rute er valgt, markeres det tallet på hele brettet. Trykk en gang til for å fjerne markeringen.
 
+På **utseende** kan du selv endre:
+
+| Gruppe | Innstillinger |
+| --- | --- |
+| stil | glød og glans av/på (av = vanlig, flat CSS uten gradienter, glød, glass og runde hjørner) |
+| tall | størrelse, tykkelse på gitte tall og dine tall, notatenes størrelse og tykkelse, tallknappenes størrelse |
+| linjer | rutelinjer, bokslinjer og ramme (0–6 px), runde hjørner |
+| markering | bakgrunn på like tall, hvor mye andre tall dempes, bakgrunn på valgt rute |
+| glans | glød og glans i tallene (0 = flate farger) |
+| farger | gitte tall, dine tall, notater, like tall, markering, feil, rutelinjer, bokslinjer, bakgrunn |
+
+Fargene følger paletten til du endrer dem, og en ny palett i menyen starter fra sine egne farger. Alt lagres i profilen og legges på før siden tegnes. «Tilbakestill alt» gir standardverdiene tilbake. Verdiene er CSS-variabler på `<html>` (se `public/js/look.js`), så nye innstillinger legges til med én linje der og én `var()` i `style.css`.
+
 Utseendet har en dempet glins: tallene er tegnet med en myk gradient ovenfra og ned, brettet har en gradientramme med avrundede hjørner og en svak glød i aksentfargen, og menyen er et nesten tett glassark. Når brettet er løst, glir et lysstreif over tallene. Alt holder seg svart og dempet.
 
 Visningen er låst til skjermen: ingenting ruller, zoomer eller kan dras bort. Bare sidene (import, statistikk) og menyen ruller, og bare inni seg selv. Ligger telefonen på siden, står tallene i en 3×3-blokk ved siden av brettet.
@@ -18,6 +31,7 @@ Menyen (⋯) åpnes som et ark nederst:
 - fem fargepaletter: svart (standard), rødt nattlys, rav, blå og lys
 - lysstyrke, som demper alt unntatt svart
 - av/på-brytere for «marker like tall» og «rydd notater»
+- **utseende**: en egen side der du justerer alt selv, med et forhåndsvisningsbrett som oppdateres mens du drar
 - importer, statistikk og bytt profil
 - hint, nederst: **notater** fyller inn alle mulige kandidater, **fjern** tar bort kandidater fra notatene dine ett logisk steg om gangen, og **tall** setter inn ett riktig tall
 
