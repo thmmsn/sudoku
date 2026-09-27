@@ -8,3 +8,33 @@
     if (look && look.brightness >= 0.2 && look.brightness <= 1) root.style.setProperty('--brightness', look.brightness);
   } catch (e) {}
 })();
+
+// The view is locked: no pinch zoom and no dragging the page around. Double-
+// tap zoom is off through touch-action in style.css, and scrollable pages
+// scroll inside their own box.
+(function () {
+  var stop = function (e) {
+    e.preventDefault();
+  };
+  document.addEventListener('gesturestart', stop, { passive: false }); // Safari pinch
+  document.addEventListener('gesturechange', stop, { passive: false });
+  document.addEventListener(
+    'touchmove',
+    function (e) {
+      if (e.touches.length > 1) return e.preventDefault(); // pinch
+      // One finger: sliders and text fields keep their gestures, and only
+      // boxes that really scroll may move.
+      var el = e.target;
+      if (el.closest && el.closest('input, textarea')) return;
+      while (el && el !== document.body) {
+        if (el.scrollHeight > el.clientHeight + 1) {
+          var o = getComputedStyle(el).overflowY;
+          if (o === 'auto' || o === 'scroll') return;
+        }
+        el = el.parentElement;
+      }
+      e.preventDefault();
+    },
+    { passive: false },
+  );
+})();

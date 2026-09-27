@@ -4,10 +4,10 @@
 // light up a dark room.
 
 import { h, icons, normalizeUsername } from './dom.js';
-import { api, mirrorProfile, mirroredProfile, queueGame, flushQueue, local } from './api.js';
+import { api, mirrorProfile, mirroredProfile, queueGame, flushQueue, local, localCurrent, setLocalCurrent } from './api.js';
 import { BoardView } from './board-view.js';
 import { renderImport, renderStats } from './pages.js';
-import { validatePuzzle, grade, puzzleId, DIFFICULTIES, DIFFICULTY_LABELS } from './engine.js';
+import { validatePuzzle, grade, puzzleId, solve, DIFFICULTIES, DIFFICULTY_LABELS } from './engine.js';
 import { solvedPuzzles } from './stats.js';
 
 /** Palettes. The colours live in style.css under [data-palette]. */
@@ -55,6 +55,7 @@ export async function renderProfile(app, rawName) {
     return;
   }
   document.title = `Sudoku · ${name}`;
+  local.set('lastProfile', name); // an installed app opens here next time
 
   let profile;
   let offline = false;
@@ -74,6 +75,14 @@ export async function renderProfile(app, rawName) {
     library = (await api.library()).puzzles;
   } catch {
     // Without the library only imported and generated puzzles are available.
+  }
+
+  // The browser's copy of the game in progress wins if it is newer than the
+  // server's (the last save did not reach the server), and is sent on.
+  const mine = localCurrent(name);
+  if (mine?.puzzle && (mine.savedAt || 0) > (profile.current?.savedAt || 0)) {
+    profile.current = mine;
+    if (!offline) api.saveCurrent(name, mine).catch(() => {});
   }
 
   const ctx = { name, profile, library, offline, settings: withDefaults(profile.settings), message: '' };
@@ -97,20 +106,29 @@ export async function renderProfile(app, rawName) {
     }
   };
 
-  ctx.saveCurrent = async (snapshot) => {
-    profile.current = snapshot;
-    mirrorProfile(profile);
-    try {
-      await api.saveCurrent(name, snapshot);
-    } catch {
-      // offline: the local mirror has it
-    }
+  // The game in progress: written to the browser on every change, sent to
+  // the server at most every 2 s (at once when the page is hidden or closed).
+  let pushTimer = null;
+  ctx.saveCurrent = (snapshot, { now = false } = {}) => {
+    const current = { ...snapshot, savedAt: Date.now() };
+    profile.current = current;
+    setLocalCurrent(name, current);
+    clearTimeout(pushTimer);
+    const push = () => api.saveCurrent(name, current, { keepalive: now }).catch(() => {
+      // offline: the browser copy wins next time, being newer
+    });
+    if (now) push();
+    else pushTimer = setTimeout(push, 2000);
   };
 
   ctx.recordGame = async (game) => {
     const { puzzle, solution, status, seconds, mistakes, hints, difficulty, source, puzzleId: id, startedAt } = game;
     const body = { puzzle, solution, status, seconds, mistakes, hints, difficulty, source, puzzleId: id, startedAt };
-    if (profile.current?.puzzle === puzzle) profile.current = null;
+    if (profile.current?.puzzle === puzzle) {
+      profile.current = null;
+      clearTimeout(pushTimer);
+      setLocalCurrent(name, null);
+    }
     try {
       profile.games.push(await api.recordGame(name, body));
     } catch {
@@ -154,15 +172,21 @@ export async function renderProfile(app, rawName) {
   let pendingStart = null;
   let level = profile.current?.difficulty || local.get('level') || 'easy';
 
+  /** Imported puzzles are stored without their solution; the solver finds it. */
+  const solutionOf = (p) => p.solution || solve(p.puzzle, 1).solution;
+  ctx.solutionOf = solutionOf;
+
   const pick = (lvl) => {
     const solved = solvedPuzzles(profile.games);
     const pool = [
       ...library.map((p) => ({ puzzle: p.p, solution: p.s, difficulty: p.d, puzzleId: p.id, source: 'library' })),
-      ...profile.puzzles.map((p) => ({ puzzle: p.puzzle, solution: p.solution, difficulty: p.difficulty, puzzleId: p.id, source: 'import' })),
+      ...profile.puzzles.map((p) => ({ puzzle: p.puzzle, imported: p, difficulty: p.difficulty, puzzleId: p.id, source: 'import' })),
     ].filter((p) => p.difficulty === lvl && p.puzzle !== profile.current?.puzzle);
     const fresh = pool.filter((p) => !solved.has(p.puzzle));
     const list = fresh.length ? fresh : pool;
-    return list.length ? list[Math.floor(Math.random() * list.length)] : null;
+    if (!list.length) return null;
+    const entry = list[Math.floor(Math.random() * list.length)];
+    return entry.imported ? { ...entry, solution: solutionOf(entry.imported) } : entry;
   };
 
   const generate = (lvl) =>
@@ -302,6 +326,21 @@ export async function renderProfile(app, rawName) {
 
     const link = (href, text) => h('a', { href, onclick: () => closeMenu() }, text);
 
+    // Hints, at the bottom of the menu. A hint that has nothing to do shows
+    // a dash and leaves the menu open.
+    const hints = h('div', { class: 'hints', role: 'group', 'aria-label': 'Hint' },
+      h('span', {}, 'hint'),
+      [['notes', 'notater'], ['eliminate', 'fjern'], ['digit', 'tall']].map(([kind, text]) =>
+        h('button', {
+          type: 'button',
+          onclick: (e) => {
+            const btn = e.currentTarget;
+            if (board?.hint(kind)) return closeMenu();
+            btn.textContent = '–';
+            setTimeout(() => (btn.textContent = text), 1200);
+          },
+        }, text)));
+
     sheet.replaceChildren(
       levels,
       swatches,
@@ -311,7 +350,8 @@ export async function renderProfile(app, rawName) {
       h('nav', { class: 'links' },
         link('#importer', 'importer'),
         link('#statistikk', 'statistikk'),
-        h('a', { href: '/' }, name)),
+        h('a', { href: '/?ny' }, name)),
+      board?.game && !board.finished ? hints : null,
     );
     backdrop.hidden = false;
     sheet.hidden = false;
@@ -331,7 +371,7 @@ export async function renderProfile(app, rawName) {
   // ---------------------------------------------------------------------------
   // Shell
 
-  const main = h('div');
+  const main = h('div', { class: 'shell' });
   app.replaceChildren(main, backdrop, sheet);
 
   function show() {

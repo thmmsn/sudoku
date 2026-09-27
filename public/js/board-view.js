@@ -24,8 +24,8 @@ export class BoardView {
     this.held = false; // clock held while the menu is open
     this.elapsed = 0;
     this.runningSince = null;
-    this.saveTimer = null;
     this.cellKeys = new Array(81).fill('');
+    this.flashed = new Set(); // cells changed by the last hint
 
     this.onKey = (e) => this.handleKey(e);
     this.onVisibility = () => {
@@ -98,12 +98,10 @@ export class BoardView {
     } else this.startClock();
   }
 
+  /** Every change is handed over at once; the profile decides when to send it. */
   save(now = false) {
     if (!this.game || this.finished) return;
-    clearTimeout(this.saveTimer);
-    const run = () => this.ctx.onSave(this.snapshot(), { now });
-    if (now) run();
-    else this.saveTimer = setTimeout(run, 700);
+    this.ctx.onSave(this.snapshot(), { now });
   }
 
   complete() {
@@ -111,7 +109,6 @@ export class BoardView {
     this.stopClock();
     this.finished = true;
     this.selected = -1;
-    clearTimeout(this.saveTimer);
     this.render();
     this.ctx.onFinish({ ...this.game.snapshot(this.elapsed), status: 'solved', seconds: Math.floor(this.elapsed) });
   }
@@ -148,6 +145,29 @@ export class BoardView {
   toggleNoteMode() {
     this.noteMode = !this.noteMode;
     this.render();
+  }
+
+  /**
+   * Hints from the menu: 'notes' fills in candidates, 'eliminate' removes
+   * notes, 'digit' places one digit. The cells that changed light up briefly.
+   * Returns null when the hint had nothing to do.
+   */
+  hint(kind) {
+    if (!this.game || this.finished) return null;
+    const g = this.game;
+    const sel = this.selected;
+    const r = kind === 'notes' ? g.hintNotes() : kind === 'eliminate' ? g.hintEliminate(sel) : g.hint(sel);
+    if (!r) return null;
+    this.flashed = new Set(r.cells || (r.index >= 0 ? [r.index] : []));
+    clearTimeout(this.flashTimer);
+    this.flashTimer = setTimeout(() => {
+      this.flashed = new Set();
+      this.render();
+    }, 1500);
+    this.render();
+    this.save(true);
+    if (g.isComplete()) this.complete();
+    return r;
   }
 
   // Keyboard, for completeness: 1-9, Backspace, arrows/WASD, Shift for notes,
@@ -245,6 +265,7 @@ export class BoardView {
       if (i === sel) cls.push('selected');
       if (st.highlightSame && selValue && v === selValue) cls.push('same');
       if (wrong?.has(i)) cls.push('wrong');
+      if (this.flashed.has(i)) cls.push('hinted');
       const className = cls.join(' ');
       const el = this.cells[i];
       if (el.className !== className) el.className = className;

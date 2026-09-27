@@ -503,6 +503,45 @@ export function findSingle(values) {
   return null;
 }
 
+/**
+ * Hint for notes: the next logical step that removes something from the
+ * player's own notes. Runs the same technique ladder as the grader on the
+ * board's candidates and returns, after the first step whose result differs
+ * from the notes, the digits that can go:
+ *   { technique, cells: [{ index, mask }] }   or null.
+ * Step 0 ('basic') is notes that clash with a digit already in the row,
+ * column or box. `values` must only contain correct digits. Removals are
+ * always safe: the logical candidates always contain the solution digit.
+ */
+export function noteEliminations(values, notes, maxSteps = 200) {
+  const state = new LogicState(values);
+  const removable = () => {
+    const out = [];
+    for (let i = 0; i < 81; i++) {
+      if (values[i] || !notes[i]) continue;
+      const allowed = state.g[i] ? 1 << (state.g[i] - 1) : state.cands[i];
+      const mask = notes[i] & ~allowed;
+      if (mask) out.push({ index: i, mask });
+    }
+    return out;
+  };
+  let cells = removable();
+  if (cells.length) return { technique: 'basic', cells };
+  for (let k = 0; k < maxSteps && !state.solved(); k++) {
+    let applied = null;
+    for (const [name, fn] of STEPS) {
+      if (fn(state)) {
+        applied = name;
+        break;
+      }
+    }
+    if (!applied) return null;
+    cells = removable();
+    if (cells.length) return { technique: applied, cells };
+  }
+  return null;
+}
+
 /** Candidate mask for every empty cell, based on the digits in `values`. */
 export function candidates(values) {
   return new LogicState(values).cands;

@@ -23,9 +23,18 @@ export function normalizeUsername(raw) {
 
 export const LIMITS = {
   games: 5000,
-  puzzles: 5000,
+  puzzles: 500, // imported puzzles per profile, about 150 kB
   settingsBytes: 16 * 1024,
 };
+
+/**
+ * A solve time counts for the public best times only if it is at least half
+ * a second per empty cell. Times come from the browser and cannot be proven;
+ * this only filters out the obviously impossible ones.
+ */
+export function plausibleTime(game) {
+  return game.seconds >= Math.ceil((81 - (game.givens || 0)) / 2);
+}
 
 export function emptyProfile(name) {
   const now = new Date().toISOString();
@@ -52,16 +61,27 @@ export class Store {
     this.cache = new Map(); // name -> profile
     this.queues = new Map(); // name -> promise chain, serializes writes
     this.summaries = new Map();
+    this.bytes = new Map(); // name -> file size, for the disk budget
+    this.totalBytes = 0;
+    this.bestCache = null;
     for (const f of fs.readdirSync(this.dir)) {
       if (!f.endsWith('.json')) continue;
       try {
-        const profile = JSON.parse(fs.readFileSync(path.join(this.dir, f), 'utf8'));
+        const text = fs.readFileSync(path.join(this.dir, f), 'utf8');
+        const profile = JSON.parse(text);
         this.cache.set(profile.name, profile);
+        this.setBytes(profile.name, Buffer.byteLength(text));
         this.summaries.set(profile.name, summarize(profile));
       } catch (err) {
         console.error(`Kunne ikke lese ${f}:`, err.message);
       }
     }
+  }
+
+  setBytes(name, n) {
+    this.totalBytes += n - (this.bytes.get(name) || 0);
+    if (n) this.bytes.set(name, n);
+    else this.bytes.delete(name);
   }
 
   file(name) {
@@ -81,10 +101,13 @@ export class Store {
       const result = await fn(profile);
       profile.updatedAt = new Date().toISOString();
       const tmp = `${this.file(name)}.${process.pid}.tmp`;
-      await fsp.writeFile(tmp, JSON.stringify(profile));
+      const json = JSON.stringify(profile);
+      await fsp.writeFile(tmp, json);
       await fsp.rename(tmp, this.file(name));
       this.cache.set(name, profile);
       this.summaries.set(name, summarize(profile));
+      this.setBytes(name, Buffer.byteLength(json));
+      this.bestCache = null;
       return { profile, result };
     });
     this.queues.set(name, next.catch(() => {}));
@@ -97,9 +120,33 @@ export class Store {
       await fsp.rm(this.file(name), { force: true });
       this.cache.delete(name);
       this.summaries.delete(name);
+      this.setBytes(name, 0);
+      this.bestCache = null;
     });
     this.queues.set(name, next.catch(() => {}));
     return next;
+  }
+
+  /**
+   * Public best times: per level, each player's best solve of a library
+   * puzzle without hints, top `n` players. Cached until the next write.
+   */
+  best(n = 5) {
+    if (this.bestCache) return this.bestCache;
+    const perLevel = {};
+    for (const profile of this.cache.values()) {
+      const mine = {};
+      for (const g of profile.games) {
+        if (g.status !== 'solved' || g.source !== 'library' || g.hints || !plausibleTime(g)) continue;
+        if (!(g.difficulty in mine) || g.seconds < mine[g.difficulty]) mine[g.difficulty] = g.seconds;
+      }
+      for (const [level, seconds] of Object.entries(mine)) (perLevel[level] ||= []).push({ name: profile.name, seconds });
+    }
+    for (const level of Object.keys(perLevel)) {
+      perLevel[level] = perLevel[level].sort((a, b) => a.seconds - b.seconds || a.name.localeCompare(b.name)).slice(0, n);
+    }
+    this.bestCache = perLevel;
+    return perLevel;
   }
 
   overview() {

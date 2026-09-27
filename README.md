@@ -6,6 +6,8 @@ Sudoku uten konto. Du velger et brukernavn, og `sudoku.eipi.dev/<brukernavn>` bl
 
 Laget for mobil i et mørkt rom. Skjermen viser bare brettet, en rad med tall og tre små ikoner: notater, angre og meny. Ingen klokke, ingen nivåvelger og ingen tekst mens du spiller. Tiden måles likevel, for statistikken.
 
+Visningen er låst til skjermen: ingenting ruller, zoomer eller kan dras bort. Bare sidene (import, statistikk) og menyen ruller, og bare inni seg selv. Ligger telefonen på siden, står tallene i en 3×3-blokk ved siden av brettet.
+
 Menyen (⋯) åpnes som et ark nederst:
 
 - nytt brett, nivå 1–5
@@ -13,26 +15,66 @@ Menyen (⋯) åpnes som et ark nederst:
 - lysstyrke, som demper alt unntatt svart
 - marker like tall, rydd notater
 - importer, statistikk og bytt profil
+- hint, nederst: **notater** fyller inn alle mulige kandidater, **fjern** tar bort kandidater fra notatene dine ett logisk steg om gangen, og **tall** setter inn ett riktig tall
+
+«Fjern» bruker samme teknikkstige som graderingen (først kandidater som kolliderer med tall på brettet, så låste kandidater, par, tripler, X-wing og swordfish). Den fjerner aldri riktig tall. Står det et feil tall på brettet, fjernes det først. Finner logikken ingenting, brukes løsningen på valgt rute. Hint teller i statistikken, og topplisten tar bare med spill uten hint.
 
 Ingen systemdialoger, fordi `confirm()` og `alert()` lyser opp rommet. Sletting krever i stedet to trykk.
 
 Spillereglene for input (samme tall tømmer ruten, notater ligger under et tall, et notat tømmer tallet, et tall fjernes fra notatene i rad, kolonne og boks) ble opprinnelig hentet fra Adressas `sudoku.js`, lest som referanse. Ingen kode er kopiert, og filen ligger ikke i repoet. Registreringen følger mekanismen fra ntnu.1024.no: skriv et navn og gå rett til profilen.
 
+## Uten nett
+
+Appen er en PWA. Ved første besøk lagrer en service worker (`public/sw.js`) hele appen og brettbiblioteket i nettleseren. Etter det virker den uten nett, for eksempel på et fly.
+
+- Pågående spill skrives til nettleseren ved hvert trekk. Serveren får det senest 2 s etter, eller med en gang når fanen lukkes. Ved oppstart vinner kopien som er nyest.
+- Ferdige spill som ikke når serveren, legges i kø og sendes neste gang.
+- Legg appen til på hjemskjermen («Legg til på Hjem-skjerm»). Da åpnes den i fullskjerm, uten nettleserlinjer, i stående format, og går rett til profilen du brukte sist.
+
+Service workers krever HTTPS (eller `localhost`).
+
 ## Kjør
+
+### Docker
+
+```sh
+docker compose up -d --build     # http://localhost:3000
+```
+
+Alle variabler er valgfrie. Legg egne verdier i `.env` (se `.env.example`):
+
+| Variabel | Standard | Betydning |
+| --- | --- | --- |
+| `SUDOKU_PORT` | `3000` | Port på verten |
+| `SUDOKU_BIND` | `0.0.0.0` | `127.0.0.1` bak en proxy på samme maskin |
+| `SUDOKU_DATA` | `sudoku-data` | Volum eller mappe for profilene. En mappe må være skrivbar for uid 1000. |
+| `SUDOKU_PUZZLES` | `./puzzles` | Brettfilene, lest ved oppstart. Legg til en fil og start på nytt. |
+| `DATA_MAX_BYTES` | `1073741824` | Samlet størrelse på alle profiler (1 GB). Over dette avvises nye profiler og importer. |
+| `RATE_NEW_PROFILES` | `20` | Nye profiler per IP-adresse per time |
+| `RATE_IMPORTS` | `30` | Importer per IP-adresse per time |
+| `TRUST_PROXY` | `0` | Sett `1` bak en reverse proxy, så grensene bruker besøkendes adresse fra `X-Forwarded-For`. Ellers deler alle proxyens adresse. |
+
+Containeren kjører som `node` (ikke root) og har en helsesjekk.
+
+### Uten Docker
 
 ```sh
 npm start          # http://localhost:3000
-npm test           # motor, spillmodell, statistikk, API
+npm test           # motor, spillmodell, statistikk, API, grenser, PWA
 ```
 
-Krever Node 20.11 eller nyere. Ingen avhengigheter.
+Krever Node 20.11 eller nyere. Ingen avhengigheter. I tillegg til variablene over: `PORT` (`0` gir en ledig port), `HOST`, `DATA_DIR` (`./data`) og `PUZZLE_DIR` (`./puzzles`).
 
-| Miljøvariabel | Standard    | Betydning                                    |
-| ------------- | ----------- | -------------------------------------------- |
-| `PORT`        | `3000`      | `0` gir en tilfeldig ledig port              |
-| `HOST`        | `0.0.0.0`   |                                              |
-| `DATA_DIR`    | `./data`    | Profiler lagres som `users/<navn>.json`      |
-| `PUZZLE_DIR`  | `./puzzles` | Innebygd bibliotek, lastes ved oppstart      |
+## Brett
+
+Biblioteket er filene i `puzzles/`: 1196 unike brett, alle med løsning (løseren fyller inn der filen mangler den). Nytt brett tar et brett du ikke har løst på valgt nivå. Når alle er løst, gjentas de. Generatoren brukes bare hvis et nivå er helt tomt.
+
+Egne brett legges inn under **importer**:
+
+- **Skriv inn**, for eksempel fra avisen: trykk rute og tall på et tomt brett. Det sjekkes mens du skriver: like tall i samme enhet markeres, og du ser om brettet har 0, 1 eller flere løsninger. Du kan bare lagre med nøyaktig én løsning, og brettet startes med en gang. Utkastet lagres lokalt til det er lagret.
+- **Lim inn tekst eller fil** i formatene under.
+
+Importerte brett hører til profilen og lagres uten løsning. Løseren finner den på millisekunder, og det halverer plassen. Deling skjer med lenke, `/<navn>?p=<81 tegn>`. Da ligger brettet i selve lenken og tar ingen plass på serveren.
 
 ## Brettnotasjon
 
@@ -42,7 +84,7 @@ Et brett er 81 tegn lest rad for rad: `1`–`9` for gitte tall, `.` eller `0` fo
 .4....79..7..94....8.........57.6.....3...6...9......1..18...2.....1...38...2.4..
 ```
 
-Import (og filene i `puzzles/`) godtar:
+Tekstimport (og filene i `puzzles/`) godtar:
 
 | Format                                        | Eksempel i repoet  |
 | --------------------------------------------- | ------------------ |
@@ -76,7 +118,7 @@ På brettene i `puzzles/` stemmer dette med 849 av 850 etiketter. Nesten alle (2
 | Metode   | Sti                                   | Beskrivelse                                      |
 | -------- | ------------------------------------- | ------------------------------------------------ |
 | `GET`    | `/api/library`                        | Innebygde brett (gzip, ETag)                     |
-| `GET`    | `/api/overview`                       | Antall spillere, løste brett, nylig aktive, flest løste |
+| `GET`    | `/api/overview`                       | Antall spillere, løste brett, flest løste, og `best`: topp 5 tider per nivå |
 | `GET`    | `/api/check/<navn>`                   | `{ valid, exists, summary }`                     |
 | `GET`    | `/api/users/<navn>`                   | Hele profilen, 404 hvis den ikke finnes          |
 | `PUT`    | `/api/users/<navn>/settings`          | Innstillinger (flatt objekt)                     |
@@ -91,7 +133,15 @@ Brukernavn: 2–30 tegn, `a-z 0-9 æ ø å - _`, uten skille på store og små b
 
 Serveren stoler ikke på klienten. Gitte tall kan ikke endres, en løsning må være et gyldig ferdig brett som stemmer med brettet, og størrelser og antall er begrenset. Skrivinger til samme profil køes og skrives atomisk.
 
-Fordi profilene er åpne med vilje, kan hvem som helst endre eller slette en profil. Sett gjerne opp rate limiting i reverse proxyen foran serveren.
+Grenser mot flooding:
+
+- 500 importerte brett per profil (rundt 150 kB), 2000 per import og 2 MB per forespørsel
+- 5000 spill i historikken per profil
+- nye profiler og importer per IP-adresse per time, og et samlet diskbudsjett (se tabellen over). Svaret er `429` eller `507`.
+
+**Toppliste:** for hvert nivå vises hver spillers beste tid på et bibliotekbrett uten hint, topp 5. Tider under et halvt sekund per tom rute regnes som umulige og tas ikke med. Tiden måles i nettleseren og kan ikke bevises, så topplisten bygger på tillit.
+
+Fordi profilene er åpne med vilje, kan hvem som helst endre eller slette en profil.
 
 ## Struktur
 
@@ -104,10 +154,14 @@ public/js/landing.js     forsiden
 public/js/profile.js     profil: lasting, lagring, valg av brett, meny, paletter
 public/js/board-view.js  spillet (tegning og input)
 public/js/pages.js       Importer og Statistikk
+public/js/entry.js       skriv inn et brett
+public/sw.js             service worker (uten nett)
+public/manifest.webmanifest  installerbar app
 public/js/engine.js      notasjon, løser, gradering, generator, import-parser
-public/js/game-state.js  spillregler uten DOM: notater, angre, feil, hint
+public/js/game-state.js  spillregler uten DOM: notater, angre, feil, hint (notater, fjern, tall)
 public/js/stats.js       statistikk fra spillhistorikken
 public/js/api.js         API-klient med lokal kopi og kø når serveren er nede
-server/                  HTTP-server, bibliotek og fillagring
+server/                  HTTP-server, bibliotek, fillagring, grenser og toppliste
+Dockerfile, compose.yaml Docker
 test/                    node:test
 ```

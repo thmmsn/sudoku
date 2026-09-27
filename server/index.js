@@ -3,7 +3,7 @@
 //   GET    /                          landing page (pick a username)
 //   GET    /<username>                the game for that profile
 //   GET    /api/library               built-in puzzles from /puzzles
-//   GET    /api/overview              global stats for the landing page
+//   GET    /api/overview              global stats and public best times
 //   GET    /api/check/<username>      { valid, exists, summary }
 //   GET    /api/users/<username>      full profile (404 if it does not exist)
 //   PUT    /api/users/<username>/settings
@@ -24,12 +24,20 @@ import { Store, normalizeUsername, summarize, LIMITS } from './store.js';
 import { parseImport, validatePuzzle, grade, puzzleId, normalizeGrid, DIFFICULTIES } from '../public/js/engine.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const PORT = Number(process.env.PORT) || 3000;
+const PORT = process.env.PORT ? Number(process.env.PORT) : 3000; // 0 = any free port
 const HOST = process.env.HOST || '0.0.0.0';
 const DATA_DIR = path.resolve(process.env.DATA_DIR || path.join(ROOT, 'data'));
 const PUZZLE_DIR = path.resolve(process.env.PUZZLE_DIR || path.join(ROOT, 'puzzles'));
 const PUBLIC_DIR = path.join(ROOT, 'public');
 const MAX_BODY = 2 * 1024 * 1024;
+
+// Flood protection. No accounts, so the limits are per IP address and for the
+// data folder as a whole. Behind a reverse proxy, set TRUST_PROXY=1 so the
+// address is read from X-Forwarded-For.
+const DATA_MAX_BYTES = Number(process.env.DATA_MAX_BYTES) || 1024 ** 3; // 1 GB
+const RATE_NEW_PROFILES = Number(process.env.RATE_NEW_PROFILES) || 20; // per IP per hour
+const RATE_IMPORTS = Number(process.env.RATE_IMPORTS) || 30; // per IP per hour
+const TRUST_PROXY = process.env.TRUST_PROXY === '1';
 
 const SOURCES = new Set(['library', 'import', 'generated', 'link']);
 const LEVELS = new Set([...DIFFICULTIES, 'unknown']);
@@ -150,6 +158,7 @@ function sanitizeCurrent(body) {
     mistakes: int(body.mistakes, 0, 10000),
     hints: int(body.hints, 0, 81),
     startedAt: iso(body.startedAt),
+    savedAt: int(body.savedAt, 0, 8.64e15, Date.now()), // the browser's clock; newest copy wins
   };
 }
 
@@ -176,6 +185,48 @@ function sanitizeGame(body) {
 }
 
 // ---------------------------------------------------------------------------
+// Rate limits and disk budget
+
+class RateLimit {
+  constructor(limit, windowMs = 3600 * 1000) {
+    this.limit = limit;
+    this.windowMs = windowMs;
+    this.hits = new Map(); // key -> timestamps
+  }
+
+  /** Records a hit; false if the key is over its limit. */
+  take(key) {
+    const now = Date.now();
+    const recent = (this.hits.get(key) || []).filter((t) => now - t < this.windowMs);
+    if (recent.length >= this.limit) {
+      this.hits.set(key, recent);
+      return false;
+    }
+    recent.push(now);
+    this.hits.set(key, recent);
+    if (this.hits.size > 10000) {
+      for (const [k, v] of this.hits) if (!v.some((t) => now - t < this.windowMs)) this.hits.delete(k);
+    }
+    return true;
+  }
+}
+
+const newProfileLimit = new RateLimit(RATE_NEW_PROFILES);
+const importLimit = new RateLimit(RATE_IMPORTS);
+
+function clientIp(req) {
+  if (TRUST_PROXY) {
+    const fwd = req.headers['x-forwarded-for'];
+    if (fwd) return fwd.split(',')[0].trim();
+  }
+  return req.socket.remoteAddress || '?';
+}
+
+function checkBudget() {
+  if (store.totalBytes >= DATA_MAX_BYTES) throw new HttpError(507, 'Serveren er full. Prøv igjen senere.');
+}
+
+// ---------------------------------------------------------------------------
 // API
 
 async function api(req, res, parts) {
@@ -198,7 +249,7 @@ async function api(req, res, parts) {
   }
 
   if (req.method === 'GET' && resource === 'overview' && !rawName) {
-    return send(req, res, 200, { ...store.overview(), library: library.puzzles.length });
+    return send(req, res, 200, { ...store.overview(), best: store.best(), library: library.puzzles.length });
   }
 
   const name = normalizeUsername(decodeURIComponent(rawName || ''));
@@ -211,6 +262,12 @@ async function api(req, res, parts) {
 
   if (resource !== 'users') throw new HttpError(404, 'Ukjent API-rute.');
   if (!name) throw new HttpError(400, 'Ugyldig brukernavn. Bruk 2-30 tegn: a-z, 0-9, æøå, - og _.');
+
+  // Any write to a name that does not exist yet creates the profile.
+  if ((req.method === 'PUT' || req.method === 'POST') && !store.get(name)) {
+    checkBudget();
+    if (!newProfileLimit.take(clientIp(req))) throw new HttpError(429, 'For mange nye profiler fra denne adressen. Prøv igjen om en time.');
+  }
 
   if (!sub) {
     if (req.method === 'GET') {
@@ -255,6 +312,8 @@ async function api(req, res, parts) {
   }
 
   if (sub === 'puzzles' && req.method === 'POST' && !subId) {
+    checkBudget();
+    if (!importLimit.take(clientIp(req))) throw new HttpError(429, 'For mange importer fra denne adressen. Prøv igjen om en time.');
     const body = await readJson(req);
     if (typeof body.text !== 'string') throw new HttpError(400, 'Mangler "text".');
     const collection = str(body.collection, 60)?.trim() || 'Importert';
@@ -282,10 +341,11 @@ async function api(req, res, parts) {
         }
         existing.add(v.puzzle);
         const g = grade(v.puzzle);
+        // The solution is not stored: the solver finds it in milliseconds,
+        // and leaving it out halves the size of every imported puzzle.
         const item = {
           id: puzzleId(v.puzzle),
           puzzle: v.puzzle,
-          solution: v.solution,
           difficulty: DIFFICULTIES.includes(e.difficulty) ? e.difficulty : g.difficulty,
           grade: g.difficulty,
           givens: v.givens,
@@ -295,7 +355,7 @@ async function api(req, res, parts) {
           addedAt: new Date().toISOString(),
         };
         p.puzzles.push(item);
-        added.push(item);
+        added.push({ ...item, solution: v.solution });
       }
       return { added, duplicates, invalid, total: entries.length };
     });

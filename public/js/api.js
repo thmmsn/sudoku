@@ -11,11 +11,12 @@ export class ApiError extends Error {
   }
 }
 
-async function request(method, url, body) {
+async function request(method, url, body, { keepalive = false } = {}) {
   let res;
   try {
     res = await fetch(url, {
       method,
+      keepalive, // lets the last save finish while the page closes
       headers: body !== undefined ? { 'Content-Type': 'application/json' } : {},
       body: body !== undefined ? JSON.stringify(body) : undefined,
     });
@@ -42,7 +43,7 @@ export const api = {
   createProfile: (name) => request('PUT', u(name)),
   deleteProfile: (name) => request('DELETE', u(name)),
   saveSettings: (name, settings) => request('PUT', `${u(name)}/settings`, settings),
-  saveCurrent: (name, current) => request('PUT', `${u(name)}/current`, current),
+  saveCurrent: (name, current, opts) => request('PUT', `${u(name)}/current`, current, opts),
   recordGame: (name, game) => request('POST', `${u(name)}/games`, game),
   importPuzzles: (name, text, collection) => request('POST', `${u(name)}/puzzles`, { text, collection }),
   deletePuzzle: (name, id) => request('DELETE', `${u(name)}/puzzles/${encodeURIComponent(id)}`),
@@ -71,6 +72,18 @@ export const local = {
     }
   },
 };
+
+// The game in progress has its own small key, written on every move, so it
+// survives a closed tab, a dead battery or a lost connection. The rest of the
+// profile is mirrored only when it changes.
+
+export function localCurrent(name) {
+  return local.get(`current:${name}`);
+}
+
+export function setLocalCurrent(name, current) {
+  local.set(`current:${name}`, current);
+}
 
 export function mirrorProfile(profile) {
   local.set(`profile:${profile.name}`, profile);

@@ -4,6 +4,7 @@
 import { h, fmt, formatTime, formatDuration, formatDate, download } from './dom.js';
 import { DIFFICULTY_LABELS, parseImport } from './engine.js';
 import { summarize, solvedPuzzles, LEVELS } from './stats.js';
+import { entryEditor } from './entry.js';
 
 const label = (d) => (DIFFICULTY_LABELS[d] || DIFFICULTY_LABELS.unknown).toLowerCase();
 const dash = '–';
@@ -66,7 +67,7 @@ export function renderImport(ctx) {
   });
 
   const list = h('div');
-  const renderList = () => list.replaceChildren(puzzleList(ctx, renderList));
+  const renderList = () => list.replaceChildren(...[puzzleList(ctx, renderList)].filter(Boolean));
   renderList();
 
   const form = h('form', {
@@ -98,10 +99,30 @@ export function renderImport(ctx) {
   h('div', { class: 'row' }, h('label', { class: 'btn quiet', for: 'import-file' }, 'fil'), file, button),
   status);
 
-  return h('div', {},
-    h('h1', {}, 'importer'),
+  // Typing a puzzle in comes first; pasting text or picking files is folded
+  // away under a link.
+  const editor = entryEditor({
+    draftKey: `draft:${ctx.name}`,
+    onSave: async (puzzle) => {
+      const r = await ctx.importPuzzles(puzzle, 'skrevet inn');
+      const p = r.added[0] || ctx.profile.puzzles.find((x) => x.puzzle === puzzle);
+      if (!p) throw new Error(r.invalid[0]?.error || 'Kunne ikke lagre brettet.');
+      ctx.play({ puzzle: p.puzzle, solution: ctx.solutionOf(p), difficulty: p.difficulty, puzzleId: p.id, source: 'import' });
+    },
+  });
+  const pasteBox = h('div', { hidden: true },
     form,
-    h('p', { class: 'hint' }, '81 tegn per brett, . eller 0 for tom rute. Også brett,løsning, CSV og JSON. Hvert brett må ha én løsning.'),
+    h('p', { class: 'hint' }, '81 tegn per brett, . eller 0 for tom rute. Også brett,løsning, CSV og JSON. Hvert brett må ha én løsning.'));
+  const toggle = action('lim inn tekst eller fil', () => {
+    pasteBox.hidden = !pasteBox.hidden;
+    toggle.hidden = true;
+  });
+
+  return h('div', {},
+    h('h1', {}, 'nytt brett'),
+    editor,
+    h('p', {}, toggle),
+    pasteBox,
     list);
 }
 
@@ -112,7 +133,7 @@ function puzzleList(ctx, rerender) {
   const csv = () =>
     download(
       `sudoku-${ctx.name}.csv`,
-      ['puzzle,solution,difficulty,id', ...puzzles.map((p) => `${p.puzzle},${p.solution},${p.difficulty},${p.id}`)].join('\n') + '\n',
+      ['puzzle,solution,difficulty,id', ...puzzles.map((p) => `${p.puzzle},${ctx.solutionOf(p)},${p.difficulty},${p.id}`)].join('\n') + '\n',
       'text/csv',
     );
   return h('div', {},
@@ -124,7 +145,7 @@ function puzzleList(ctx, rerender) {
           h('td', { class: 'dim' }, p.collection || ''),
           h('td', {}, solved.has(p.puzzle) ? '✓' : ''),
           h('td', { class: 'n' },
-            action('spill', () => ctx.play({ puzzle: p.puzzle, solution: p.solution, difficulty: p.difficulty, puzzleId: p.id, source: 'import' })),
+            action('spill', () => ctx.play({ puzzle: p.puzzle, solution: ctx.solutionOf(p), difficulty: p.difficulty, puzzleId: p.id, source: 'import' })),
             twoTap('slett', async () => {
               await ctx.deletePuzzle(p.id);
               rerender();
@@ -142,7 +163,7 @@ export function renderStats(ctx) {
 
   const replay = (g) => {
     const known = ctx.library.find((p) => p.p === g.puzzle) || ctx.profile.puzzles.find((p) => p.puzzle === g.puzzle);
-    const solution = known?.s || known?.solution;
+    const solution = known?.s || (known && ctx.solutionOf(known));
     if (solution) ctx.play({ puzzle: g.puzzle, solution, difficulty: g.difficulty, puzzleId: g.puzzleId, source: g.source });
     else location.href = `?p=${g.puzzle}#spill`;
   };

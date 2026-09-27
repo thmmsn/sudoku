@@ -4,7 +4,7 @@
 //
 // Notes are 9 bit masks per cell, bit (d - 1) meaning "d is pencilled in".
 
-import { PEERS, UNITS, toArray, candidates, findSingle } from './engine.js';
+import { PEERS, UNITS, toArray, candidates, findSingle, noteEliminations } from './engine.js';
 
 export class GameState {
   /**
@@ -221,6 +221,56 @@ export class GameState {
   //  3. otherwise the easiest single on the board is placed, with the reason,
   //  4. if no single exists, the first empty cell is filled.
   // Every call counts as one hint.
+
+  /** Removes one wrong digit (the selected one if it is wrong). One hint. */
+  removeWrong(selected = -1) {
+    const wrong = this.wrongCells();
+    if (!wrong.length) return null;
+    const i = wrong.includes(selected) ? selected : wrong[0];
+    this.commit([{ i, v: 0, n: this.notes[i] }]);
+    this.hints++;
+    return { type: 'wrong', cells: [i] };
+  }
+
+  /** Hint: writes every legal candidate into every empty cell as notes. */
+  hintNotes() {
+    if (this.isComplete()) return null;
+    const before = this.notes.slice();
+    if (!this.fillAllNotes()) return null;
+    this.hints++;
+    const cells = [];
+    for (let i = 0; i < 81; i++) if (this.notes[i] !== before[i]) cells.push(i);
+    return { type: 'notes', cells };
+  }
+
+  /**
+   * Hint: removes digits from the player's notes. A wrong digit on the board
+   * is removed first, since logic cannot work around it. Then the next
+   * logical elimination (see noteEliminations). If logic finds nothing in
+   * the notes, the solution is used: the wrong notes of the selected cell, or
+   * of the first cell that has any, are removed. Returns null when there is
+   * nothing to remove (for example no notes at all).
+   */
+  hintEliminate(selected = -1) {
+    if (this.isComplete()) return null;
+    const wrong = this.removeWrong(selected);
+    if (wrong) return wrong;
+
+    const found = noteEliminations(this.values, this.notes);
+    if (found) {
+      this.commit(found.cells.map(({ index, mask }) => ({ i: index, v: 0, n: this.notes[index] & ~mask })));
+      this.hints++;
+      return { type: 'eliminate', technique: found.technique, cells: found.cells.map((c) => c.index) };
+    }
+
+    const wrongNotes = (i) => !this.values[i] && this.notes[i] & ~(1 << (this.sol[i] - 1));
+    const order = [selected, ...Array(81).keys()].filter((i) => i >= 0);
+    const i = order.find(wrongNotes);
+    if (i === undefined) return null;
+    this.commit([{ i, v: 0, n: this.notes[i] & (1 << (this.sol[i] - 1)) }]);
+    this.hints++;
+    return { type: 'solution', cells: [i] };
+  }
 
   hint(selected = -1) {
     if (this.isComplete()) return null;

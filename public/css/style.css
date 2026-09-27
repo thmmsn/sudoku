@@ -113,11 +113,31 @@ body {
   font-size: 15px;
   line-height: 1.45;
   overscroll-behavior: none;
+  -webkit-touch-callout: none;
 }
 
-/* Brightness from the menu. Black stays black, everything else dims. */
+/* The view is locked to the screen: nothing scrolls, pans or bounces except
+   boxes meant to scroll (the pages and the menu), and those only inside
+   themselves. Brightness from the menu dims everything except black. */
+html,
+body {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  -webkit-text-size-adjust: 100%;
+}
+/* No double-tap zoom anywhere, without delaying taps. */
+button,
+a,
+input,
+label,
+textarea {
+  touch-action: manipulation;
+}
 #app {
-  min-height: 100dvh;
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
   filter: brightness(var(--brightness, 1));
 }
 
@@ -156,9 +176,14 @@ svg {
    Game
    ========================================================================== */
 
+.shell {
+  position: absolute;
+  inset: 0;
+}
 .game-page {
-  height: 100dvh;
+  height: 100%;
   overflow: hidden;
+  touch-action: none;
   user-select: none;
   -webkit-user-select: none;
 }
@@ -223,6 +248,10 @@ svg {
 }
 .cell.wrong {
   color: var(--err);
+}
+.cell.hinted {
+  background: var(--sel);
+  transition: background 0.3s;
 }
 .board.solved .cell {
   color: var(--hi);
@@ -318,6 +347,10 @@ svg {
   padding: 20px 20px max(20px, env(safe-area-inset-bottom));
   background: var(--surface);
   border-top: 1px solid var(--box);
+  max-height: 88dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
 }
 .sheet .levels {
   display: grid;
@@ -378,6 +411,25 @@ svg {
   padding: 6px 0;
 }
 
+.hints {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  color: var(--dim);
+}
+.hints span {
+  margin-right: auto;
+}
+.hints button {
+  min-width: 64px;
+  min-height: 40px;
+  border: 0;
+  background: none;
+  color: var(--text);
+}
+
 /* Controls without bright browser defaults. */
 input[type='range'] {
   -webkit-appearance: none;
@@ -430,6 +482,12 @@ input[type='checkbox']:checked {
    ========================================================================== */
 
 .page {
+  position: absolute;
+  inset: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
   max-width: 560px;
   margin: 0 auto;
   padding: max(8px, env(safe-area-inset-top)) 16px max(32px, env(safe-area-inset-bottom));
@@ -591,7 +649,8 @@ td.dim {
    ========================================================================== */
 
 .landing {
-  min-height: 100dvh;
+  height: 100%;
+  touch-action: none;
   display: grid;
   place-content: center;
   padding: 16px;
@@ -619,6 +678,85 @@ td.dim {
 .landing form:focus-within {
   border-bottom-color: var(--ui);
 }
+.landing .best {
+  width: min(280px, 100vw - 32px);
+  margin-top: 48px;
+  color: var(--dim);
+  font-size: 13px;
+}
+.landing .best td {
+  padding: 6px 0;
+  border-bottom: 0;
+}
+.landing .best .lvl {
+  width: 24px;
+  vertical-align: top;
+}
+.landing .best .t {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
 .landing .hint {
   margin: 10px 0 0;
+}
+
+/* Typing in a puzzle (import page). */
+.entry {
+  --w: min(100vw - 32px, 528px, 58dvh);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 8px;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.entry .board {
+  touch-action: manipulation;
+}
+.entry .tools {
+  align-items: center;
+}
+.entry-status {
+  flex: 1;
+  margin: 0;
+  text-align: center;
+  color: var(--dim);
+  font-size: 13px;
+}
+.entry-status.bad {
+  color: var(--err);
+}
+.tool[disabled] {
+  opacity: 0.25;
+}
+.tool.armed {
+  color: var(--err);
+}
+
+/* A phone on its side: board to the left, digits as a 3x3 block to the right. */
+@media (orientation: landscape) and (max-height: 520px) {
+  .game {
+    --w: min(100dvh - 16px, 60vw);
+    display: grid;
+    grid-template-columns: auto auto;
+    grid-template-rows: 1fr auto;
+    justify-content: center;
+    align-items: center;
+    column-gap: 16px;
+    padding: 8px max(8px, env(safe-area-inset-right)) 8px max(8px, env(safe-area-inset-left));
+  }
+  .board-area {
+    grid-row: 1 / 3;
+  }
+  .pad {
+    width: min(40vw, 240px);
+    grid-template-columns: repeat(3, 1fr);
+    margin: 0;
+  }
+  .pad .key {
+    height: 52px;
+  }
+  .tools {
+    width: min(40vw, 240px);
+  }
 }

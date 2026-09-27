@@ -180,3 +180,45 @@ test('snapshot round-trips', () => {
   assert.deepEqual(g2.notes, g.notes);
   assert.equal(g2.elapsed, 42);
 });
+
+test('hintNotes fills candidates and counts one hint', () => {
+  const g = fresh();
+  const r = g.hintNotes();
+  assert.equal(r.type, 'notes');
+  assert.ok(r.cells.length > 0);
+  assert.equal(g.hints, 1);
+  for (let i = 0; i < 81; i++) if (P[i] === '.') assert.ok(g.notes[i] & (1 << (digit(i) - 1)));
+});
+
+test('hintEliminate never removes the solution digit and ends when notes are clean', () => {
+  const g = fresh();
+  for (let i = 0; i < 81; i++) if (P[i] === '.') g.notes[i] = 0x1ff; // every note everywhere
+  let steps = 0;
+  let r;
+  while ((r = g.hintEliminate()) && steps < 500) {
+    steps++;
+    for (let i = 0; i < 81; i++) {
+      if (P[i] === '.') assert.ok(g.notes[i] & (1 << (digit(i) - 1)), `solution note kept at ${i} (step ${steps}, ${r.type})`);
+    }
+  }
+  assert.ok(steps > 1);
+  for (let i = 0; i < 81; i++) if (P[i] === '.') assert.equal(g.notes[i], 1 << (digit(i) - 1), 'only the solution note is left');
+  assert.equal(g.hints, steps);
+});
+
+test('hintEliminate removes a wrong digit first and returns null without notes', () => {
+  const g = fresh();
+  assert.equal(g.hintEliminate(), null);
+  assert.equal(g.hints, 0);
+  g.setValue(firstEmpty, wrongDigit(firstEmpty));
+  assert.equal(g.hintEliminate().type, 'wrong');
+  assert.equal(g.values[firstEmpty], 0);
+});
+
+test('first elimination on full notes is the basic clash with placed digits', () => {
+  const g = fresh();
+  for (let i = 0; i < 81; i++) if (P[i] === '.') g.notes[i] = 0x1ff;
+  const r = g.hintEliminate();
+  assert.equal(r.type, 'eliminate');
+  assert.equal(r.technique, 'basic');
+});

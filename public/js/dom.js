@@ -52,6 +52,8 @@ export const icons = {
       ['circle', { cx: 19, cy: 12, r: 1.4, fill: 'currentColor' }],
     ]),
   next: () => svg([['path', { d: 'M4 12h16M14 6l6 6-6 6', ...line }]]),
+  check: () => svg([['path', { d: 'M4 12.5l5 5L20 6.5', ...line }]]),
+  clear: () => svg([['path', { d: 'M6 6l12 12M18 6L6 18', ...line }]]),
   back: () => svg([['path', { d: 'M20 12H4M10 6l-6 6 6 6', ...line }]]),
   sun: () =>
     svg([

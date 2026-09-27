@@ -99,6 +99,7 @@ test('profile lifecycle: settings, current game, finished game, overview', async
   assert.equal(o.players, 1);
   assert.equal(o.solved, 1);
   assert.equal(o.top[0].name, 'ola');
+  assert.deepEqual(o.best.easy, [{ name: 'ola', seconds: 321 }], 'library solve without hints is a public best time');
   assert.equal(fs.existsSync(path.join(dataDir, 'users', 'ola.json')), true);
 });
 
@@ -137,6 +138,7 @@ test('import: all repo notations, duplicates and errors are reported', async () 
   assert.equal(del.status, 200);
   const p = (await call('GET', '/api/users/per')).json;
   assert.equal(p.puzzles.length, 1);
+  assert.equal(p.puzzles[0].solution, undefined, 'solutions are not stored');
 
   await call('DELETE', '/api/users/per/puzzles?collection=Test');
   assert.equal((await call('GET', '/api/users/per')).json.puzzles.length, 0);
