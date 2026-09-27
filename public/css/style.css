@@ -1,100 +1,145 @@
-/* Visual source: screenshots of adressa.no/hjernetrim/sudoku (colors measured
-   by eye from the screenshots, not taken from their CSS).
+/* Minimal, mobile-first, for playing in a dark room. Own design.
 
-   Everything outside the game (landing page, import, statistics, settings,
-   dark mode) has no screenshot. Those parts reuse the same tokens: navy,
-   light grey, serif, filled navy buttons like the number keys and segmented
-   controls like the level picker. */
+   Palettes are token sets on [data-palette]. The same selector also colours
+   the swatches in the menu, so each swatch shows its own palette. */
 
-:root {
-  color-scheme: light;
-  --navy: #225076;
-  --same: #8da5b8;
-  --cell-a: #e8e8e8; /* checkerboard, (row + col) even */
-  --cell-b: #ffffff;
-  --box-line: #5a5a5a;
-  --cell-line: #6e6e6e;
-  --game-bg: #f8f8f8;
-  --seg-bg: #e8e8e8;
-  --on-navy: #ffffff;
-  --on-same: #ffffff;
-
-  /* Derived, not in the screenshots. */
-  --surface: #ffffff;
-  --muted: #5b6b79;
-  --hairline: #d6d6d6;
-  --error: #b3261e;
-
-  --serif: Georgia, 'Times New Roman', serif;
-  --board-max: 540px;
-}
-
-/* Dark mode: not in any source, own design with the same roles. */
-@media (prefers-color-scheme: dark) {
-  :root:where(:not([data-theme='light'])) {
-    color-scheme: dark;
-    --navy: #7fa9d1;
-    --same: #3f6385;
-    --cell-a: #262626;
-    --cell-b: #1a1a1a;
-    --box-line: #9a9a9a;
-    --cell-line: #4a4a4a;
-    --game-bg: #111111;
-    --seg-bg: #262626;
-    --on-navy: #0b1620;
-    --surface: #1a1a1a;
-    --muted: #9fb3c6;
-    --hairline: #333333;
-    --error: #ff8a80;
-  }
-}
-:root[data-theme='dark'] {
+:root,
+[data-palette='natt'] {
   color-scheme: dark;
-  --navy: #7fa9d1;
-  --same: #3f6385;
-  --cell-a: #262626;
-  --cell-b: #1a1a1a;
-  --box-line: #9a9a9a;
-  --cell-line: #4a4a4a;
-  --game-bg: #111111;
-  --seg-bg: #262626;
-  --on-navy: #0b1620;
-  --surface: #1a1a1a;
-  --muted: #9fb3c6;
-  --hairline: #333333;
-  --error: #ff8a80;
+  --bg: #000;
+  --surface: #0a0a0a;
+  --line: #161616; /* thin cell lines */
+  --box: #333; /* box lines, just as thin, a little brighter */
+  --given: #7c7c7c;
+  --user: #5f7d9c;
+  --note: #4d4d4d;
+  --sel: #151515; /* selected cell */
+  --hi: #b0b0b0; /* digits equal to the selected one */
+  --err: #a8453c;
+  --ui: #555;
+  --ui-on: #9a9a9a;
+  --text: #7a7a7a;
+  --dim: #444;
+}
+
+/* Red only, to keep night vision. */
+[data-palette='rod'] {
+  color-scheme: dark;
+  --bg: #000;
+  --surface: #070000;
+  --line: #1c0404;
+  --box: #420c0c;
+  --given: #8e2a22;
+  --user: #c4412f;
+  --note: #5a1810;
+  --sel: #1c0505;
+  --hi: #ff6a50;
+  --err: #8a6a20;
+  --ui: #6a1c14;
+  --ui-on: #c4412f;
+  --text: #8e2a22;
+  --dim: #4a120c;
+}
+
+[data-palette='rav'] {
+  color-scheme: dark;
+  --bg: #000;
+  --surface: #080600;
+  --line: #1a1305;
+  --box: #3d2c0c;
+  --given: #8c6a2c;
+  --user: #c79440;
+  --note: #54401a;
+  --sel: #171005;
+  --hi: #f0c060;
+  --err: #b04a3a;
+  --ui: #5e4718;
+  --ui-on: #c79440;
+  --text: #8c6a2c;
+  --dim: #4a3812;
+}
+
+[data-palette='bla'] {
+  color-scheme: dark;
+  --bg: #000;
+  --surface: #02050a;
+  --line: #0c1420;
+  --box: #1f3350;
+  --given: #6a7f99;
+  --user: #5b95d6;
+  --note: #34485f;
+  --sel: #0c1624;
+  --hi: #a8d0ff;
+  --err: #b04a3a;
+  --ui: #3a5270;
+  --ui-on: #7fb0e6;
+  --text: #6a7f99;
+  --dim: #2c3c52;
+}
+
+/* For daylight. */
+[data-palette='lys'] {
+  color-scheme: light;
+  --bg: #f2f2f2;
+  --surface: #fff;
+  --line: #d6d6d6;
+  --box: #8a8a8a;
+  --given: #1a1a1a;
+  --user: #2d5f93;
+  --note: #7a7a7a;
+  --sel: #dcdcdc;
+  --hi: #000;
+  --err: #b3261e;
+  --ui: #777;
+  --ui-on: #111;
+  --text: #333;
+  --dim: #999;
 }
 
 *,
 *::before,
 *::after {
   box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
 }
 
 html,
 body {
   margin: 0;
-  background: var(--game-bg);
-  color: var(--navy);
-  font-family: var(--serif);
-  font-size: 17px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-weight: 300;
+  font-size: 15px;
   line-height: 1.45;
+  overscroll-behavior: none;
+}
+
+/* Brightness from the menu. Black stays black, everything else dims. */
+#app {
+  min-height: 100dvh;
+  filter: brightness(var(--brightness, 1));
 }
 
 a {
-  color: var(--navy);
+  color: var(--ui-on);
+  text-decoration: none;
 }
-
 button {
   font: inherit;
+  color: inherit;
   cursor: pointer;
 }
-
+:focus {
+  outline: none;
+}
 :focus-visible {
-  outline: 2px solid var(--navy);
+  outline: 1px solid var(--ui);
   outline-offset: 2px;
 }
-
+[hidden] {
+  display: none !important;
+}
 .visually-hidden {
   position: absolute !important;
   width: 1px;
@@ -103,170 +148,318 @@ button {
   clip: rect(0 0 0 0);
   white-space: nowrap;
 }
-
-.muted {
-  color: var(--muted);
+svg {
+  display: block;
 }
 
 /* ==========================================================================
-   Shared controls (derived from the number keys and the level picker)
+   Game
    ========================================================================== */
 
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  min-height: 42px;
-  padding: 6px 18px;
-  border: 0;
-  border-radius: 6px;
-  background: var(--navy);
-  color: var(--on-navy);
-  font-family: var(--serif);
-  font-size: 1.05rem;
-  font-weight: 700;
-  text-decoration: none;
-  white-space: nowrap;
-}
-.btn.secondary {
-  background: var(--seg-bg);
-  color: var(--navy);
-  box-shadow: inset 0 0 0 1px var(--navy);
-}
-.btn[disabled] {
-  opacity: 0.5;
-  cursor: default;
-}
-
-input[type='text'],
-select,
-textarea {
-  font-family: var(--serif);
-  font-size: 1.05rem;
-  color: var(--navy);
-  background: var(--surface);
-  border: 1px solid var(--cell-line);
-  border-radius: 6px;
-  padding: 8px 10px;
-  min-height: 42px;
-}
-textarea {
-  width: 100%;
-  min-height: 200px;
-  font-family: ui-monospace, Menlo, Consolas, monospace;
-  font-size: 0.9rem;
-  resize: vertical;
-}
-input[type='checkbox'],
-input[type='range'] {
-  accent-color: var(--navy);
-}
-input[type='checkbox'] {
-  width: 20px;
-  height: 20px;
-}
-
-/* Segmented control, same look as the level picker. */
-.seg {
-  display: inline-flex;
-  flex-wrap: wrap;
-  background: var(--seg-bg);
-  border-radius: 6px;
+.game-page {
+  height: 100dvh;
   overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
 }
-.seg > a,
-.seg > button {
-  position: relative;
-  padding: 7px 14px;
-  border: 0;
-  background: transparent;
-  color: var(--navy);
-  font-family: var(--serif);
-  font-weight: 700;
-  font-size: 1rem;
-  text-decoration: none;
-  white-space: nowrap;
-}
-.seg > * + *::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 1.5px;
-  background: var(--navy);
-}
-.seg > [aria-current='page'],
-.seg > [aria-pressed='true'] {
-  background: var(--navy);
-  color: var(--on-navy);
-}
-.seg > [aria-current='page']::before,
-.seg > [aria-current='page'] + *::before,
-.seg > [aria-pressed='true']::before,
-.seg > [aria-pressed='true'] + *::before {
-  display: none;
-}
-
-/* ==========================================================================
-   Page frame
-   ========================================================================== */
-
-.app-head {
+.game {
+  --w: min(100vw - 12px, 100dvh - 170px, 560px);
+  height: 100%;
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px 20px;
-  max-width: 760px;
-  margin: 0 auto;
-  padding: 14px 16px 0;
+  padding: max(8px, env(safe-area-inset-top)) 6px max(8px, env(safe-area-inset-bottom));
 }
-.app-head .title {
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: 700;
+.board-area {
+  flex: 1;
+  display: grid;
+  place-items: center;
 }
-.app-head .title a {
-  text-decoration: none;
+
+.board {
+  width: var(--w);
+  aspect-ratio: 1;
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  grid-template-rows: repeat(9, 1fr);
+  border: 1px solid var(--box);
+  container-type: inline-size;
+  touch-action: manipulation;
 }
-.app-head .who {
+.cell {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  min-height: 0;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  color: var(--user);
+  font-size: 6.4cqi;
+  font-weight: 300;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.cell.box-right {
+  border-right-color: var(--box);
+}
+.cell.box-bottom {
+  border-bottom-color: var(--box);
+}
+.cell.last-col {
+  border-right: 0;
+}
+.cell.last-row {
+  border-bottom: 0;
+}
+.cell.given {
+  color: var(--given);
   font-weight: 400;
 }
-@media (max-width: 560px) {
-  .app-head .seg {
-    width: 100%;
-  }
-  .app-head .seg > * {
-    flex: 1;
-    padding: 7px 4px;
-    text-align: center;
-    font-size: 0.92rem;
-  }
+.cell.selected {
+  background: var(--sel);
 }
+.cell.same {
+  color: var(--hi);
+}
+.cell.wrong {
+  color: var(--err);
+}
+.board.solved .cell {
+  color: var(--hi);
+  transition: color 0.6s;
+}
+
+.notes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  width: 100%;
+  height: 100%;
+  padding: 6%;
+}
+.notes span {
+  display: grid;
+  place-items: center;
+  color: var(--note);
+  font-size: 2.5cqi;
+}
+
+.pad {
+  width: var(--w);
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  margin-top: 10px;
+}
+.pad.gone {
+  visibility: hidden;
+}
+.pad .key {
+  height: 56px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ui-on);
+  font-size: min(7.4vw, 30px);
+  font-weight: 300;
+}
+.pad .key:active {
+  color: var(--hi);
+}
+.pad.notes-mode .key {
+  color: var(--note);
+  font-size: min(5vw, 20px);
+}
+.pad .key.done {
+  opacity: 0.2;
+}
+
+.tools {
+  width: var(--w);
+  display: flex;
+  justify-content: space-between;
+}
+.tool {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ui);
+}
+.tool svg {
+  width: 22px;
+  height: 22px;
+}
+.tool[aria-pressed='true'] {
+  color: var(--ui-on);
+}
+
+/* ==========================================================================
+   Menu (bottom sheet)
+   ========================================================================== */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgb(0 0 0 / 0.5);
+}
+.sheet {
+  --ring: var(--ui-on);
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-width: 560px;
+  margin: 0 auto;
+  display: grid;
+  gap: 20px;
+  padding: 20px 20px max(20px, env(safe-area-inset-bottom));
+  background: var(--surface);
+  border-top: 1px solid var(--box);
+}
+.sheet .levels {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+}
+.sheet .levels button {
+  height: 44px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: none;
+  color: var(--text);
+  font-size: 18px;
+}
+.sheet .levels button[aria-pressed='true'] {
+  color: var(--ui-on);
+  border-bottom-color: var(--ui-on);
+}
+.swatches {
+  display: flex;
+  justify-content: space-between;
+}
+.swatch {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--box);
+  background: var(--bg);
+  color: var(--user);
+  font-size: 18px;
+}
+.swatch[aria-pressed='true'] {
+  outline: 1px solid var(--ring);
+  outline-offset: 3px;
+}
+.bright {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: var(--ui);
+}
+.bright svg {
+  width: 20px;
+  height: 20px;
+  flex: none;
+}
+.switch {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  padding-top: 4px;
+}
+.links a {
+  padding: 6px 0;
+}
+
+/* Controls without bright browser defaults. */
+input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  flex: 1;
+  height: 32px;
+  background: none;
+}
+input[type='range']::-webkit-slider-runnable-track {
+  height: 1px;
+  background: var(--box);
+}
+input[type='range']::-moz-range-track {
+  height: 1px;
+  background: var(--box);
+}
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  margin-top: -9px;
+  border-radius: 50%;
+  background: var(--ui-on);
+  border: 0;
+}
+input[type='range']::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--ui-on);
+  border: 0;
+}
+input[type='checkbox'] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  border: 1px solid var(--box);
+  border-radius: 3px;
+  background: none;
+}
+input[type='checkbox']:checked {
+  background: var(--ui-on);
+  border-color: var(--ui-on);
+}
+
+/* ==========================================================================
+   Pages (import, statistics)
+   ========================================================================== */
 
 .page {
-  max-width: 760px;
+  max-width: 560px;
   margin: 0 auto;
-  padding: 8px 16px 48px;
+  padding: max(8px, env(safe-area-inset-top)) 16px max(32px, env(safe-area-inset-bottom));
+}
+.back {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-left: -12px;
+  color: var(--ui);
+}
+.back svg {
+  width: 22px;
+  height: 22px;
+}
+.page h1 {
+  margin: 4px 0 16px;
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--ui-on);
 }
 .page h2 {
-  margin: 28px 0 12px;
-  font-size: 1.35rem;
-  font-weight: 700;
-}
-.page h2:first-child {
-  margin-top: 16px;
+  margin: 28px 0 8px;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--dim);
 }
 .page p {
-  margin: 0 0 12px;
-}
-
-.panel {
-  background: var(--surface);
-  border-radius: 6px;
-  padding: 16px;
+  margin: 10px 0;
 }
 .row {
   display: flex;
@@ -274,105 +467,123 @@ input[type='checkbox'] {
   align-items: center;
   gap: 10px;
 }
+.page .row .btn:last-child {
+  margin-left: auto;
+}
 
-.msg {
-  margin: 10px 0 0;
+.btn {
+  display: inline-grid;
+  place-items: center;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid var(--box);
+  border-radius: 4px;
+  background: none;
+  color: var(--ui-on);
 }
-.msg.error {
-  color: var(--error);
+.btn.quiet {
+  color: var(--text);
+  border-color: var(--line);
 }
-.msg ul {
+.btn[disabled] {
+  opacity: 0.4;
+}
+button.link {
+  min-height: 36px;
+  padding: 0 8px;
+  border: 0;
+  background: none;
+  color: var(--ui-on);
+}
+button.link.armed {
+  color: var(--err);
+}
+
+textarea {
+  display: block;
+  width: 100%;
+  min-height: 140px;
+  margin-bottom: 10px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--text);
+  font: 16px/1.4 ui-monospace, Menlo, Consolas, monospace; /* 16px: no zoom on iOS */
+  resize: vertical;
+}
+textarea::placeholder,
+input::placeholder {
+  color: var(--dim);
+}
+
+.status,
+.hint {
+  color: var(--dim);
+  font-size: 13px;
+}
+.errors {
   margin: 6px 0 0;
-  padding-left: 20px;
-  max-height: 180px;
+  padding-left: 18px;
+  max-height: 160px;
   overflow: auto;
 }
 
-/* Tables: thin lines like the thin cell lines. */
-.table-scroll {
-  overflow-x: auto;
-}
-table.data {
+table {
   width: 100%;
   border-collapse: collapse;
-  background: var(--surface);
-  border-radius: 6px;
-  overflow: hidden;
 }
-table.data th,
-table.data td {
-  padding: 8px 12px;
+th,
+td {
+  padding: 8px 4px;
+  border-bottom: 1px solid var(--line);
   text-align: left;
-  border-bottom: 1px solid var(--hairline);
+  font-weight: 300;
 }
-table.data tr:last-child td {
-  border-bottom: 0;
+th {
+  color: var(--dim);
+  font-size: 13px;
 }
-table.data th {
-  font-size: 0.9rem;
-  color: var(--muted);
-  font-weight: 700;
-}
-table.data .n {
+.n {
   text-align: right;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
-table.data tr.dim td {
-  color: var(--muted);
-}
-
-/* Single-series horizontal bars: label, navy bar, value. */
-.bars {
-  list-style: none;
-  margin: 0;
-  padding: 12px 16px;
-  background: var(--surface);
-  border-radius: 6px;
-  display: grid;
-  grid-template-columns: max-content 1fr max-content;
-  gap: 8px 12px;
-  align-items: center;
-}
-.bars li {
-  display: contents;
-}
-.bars .track {
-  height: 18px;
-}
-.bars .fill {
-  height: 100%;
-  min-width: 4px;
-  background: var(--navy);
-  border-radius: 0 4px 4px 0;
-}
-.bars .value {
-  font-variant-numeric: tabular-nums;
-  text-align: right;
+tr.dim td,
+td.dim {
+  color: var(--dim);
 }
 
-.settings-list {
-  list-style: none;
-  margin: 0;
-  padding: 0 16px;
-  background: var(--surface);
-  border-radius: 6px;
-}
-.settings-list li {
+.figures {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px 24px;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--hairline);
+  gap: 32px;
+  margin: 0 0 20px;
 }
-.settings-list li:last-child {
-  border-bottom: 0;
+.figures dt {
+  color: var(--dim);
+  font-size: 13px;
 }
-.settings-list .help {
-  display: block;
-  color: var(--muted);
-  font-size: 0.92rem;
+.figures dd {
+  margin: 0;
+  color: var(--ui-on);
+  font-size: 22px;
+}
+
+.notice-wrap {
+  position: fixed;
+  top: max(8px, env(safe-area-inset-top));
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: var(--dim);
+  font-size: 13px;
+  pointer-events: none;
+}
+.notice-wrap p,
+.page .notice {
+  margin: 0;
+  color: var(--dim);
+  font-size: 13px;
 }
 
 /* ==========================================================================
@@ -380,417 +591,34 @@ table.data tr.dim td {
    ========================================================================== */
 
 .landing {
-  max-width: 540px;
-  margin: 0 auto;
-  padding: 12vh 16px 48px;
-}
-.landing h1 {
-  margin: 0 0 8px;
-  font-size: 2.6rem;
-  font-weight: 700;
-}
-.landing .lead {
-  margin: 0 0 20px;
-  font-size: 1.1rem;
-}
-.landing form input {
-  flex: 1 1 220px;
-  min-width: 0;
-}
-.landing .field-error {
-  color: var(--error);
-  margin: 8px 0 0;
-}
-.landing .explain {
-  margin: 16px 0 0;
-  color: var(--muted);
-}
-.landing h2 {
-  margin: 40px 0 12px;
-  font-size: 1.2rem;
-}
-
-/* ==========================================================================
-   Game (Adressa screenshots)
-   ========================================================================== */
-
-.game-page {
-  background: var(--game-bg);
-  min-height: calc(100vh - 60px);
-  padding: 18px 16px 40px;
-}
-.game {
-  width: 100%;
-  max-width: var(--board-max);
-  margin: 0 auto;
-  container-type: inline-size;
-}
-
-.game-bar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 2cqi;
-  margin-bottom: 3cqi;
-}
-.game-bar .left,
-.game-bar .right {
-  display: flex;
-  align-items: center;
-  gap: 2.5cqi;
-}
-.game-bar .left {
-  order: 0;
-}
-.game-bar .levels {
-  order: 1;
-}
-.game-bar .right {
-  order: 2;
-}
-.timer {
-  min-width: 3.2em;
-  font-family: var(--serif);
-  font-size: max(15px, 3.1cqi);
-  color: var(--navy);
-  font-variant-numeric: tabular-nums;
-}
-.icon-btn {
+  min-height: 100dvh;
   display: grid;
-  place-items: center;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--navy);
-}
-.icon-btn svg {
-  width: max(22px, 4.4cqi);
-  height: max(22px, 4.4cqi);
-}
-.icon-btn[aria-disabled='true'] {
-  cursor: default;
-}
-
-.levels {
-  display: flex;
-  background: var(--seg-bg);
-  border-radius: 6px;
-  overflow: hidden;
-}
-.levels button {
-  position: relative;
-  border: 0;
-  background: transparent;
-  color: var(--navy);
-  font-family: var(--serif);
-  font-weight: 700;
-  font-size: max(11px, 2.75cqi);
-  padding: 1.2cqi 2.2cqi;
-  white-space: nowrap;
-}
-/* Narrow: levels on their own row above the timer and the tools. sudoku.js
-   does this when screen.width < 700 on a touch device; here the trigger is
-   the width of the game, because five levels need more room than four. */
-@container (max-width: 600px) {
-  .game-bar {
-    row-gap: 3cqi;
-  }
-  .game-bar .levels {
-    order: -1;
-    width: 100%;
-  }
-  .levels button {
-    flex: 1;
-    padding: 2cqi 0.5cqi;
-    font-size: max(12px, 3.3cqi);
-  }
-}
-
-/* Thin divider between two inactive neighbours. */
-.levels button + button::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 1.5px;
-  background: var(--navy);
-}
-.levels button[aria-pressed='true'],
-.levels button[aria-pressed='true'] + button {
-  --hide-divider: 1;
-}
-.levels button[aria-pressed='true']::before,
-.levels button[aria-pressed='true'] + button::before {
-  display: none;
-}
-.levels button[aria-pressed='true'] {
-  background: var(--navy);
-  color: var(--on-navy);
-}
-
-.board {
-  display: grid;
-  grid-template-columns: repeat(9, 1fr);
-  border: max(3px, 0.7cqi) solid var(--box-line);
-  background: var(--cell-line);
-  gap: 1px;
-  aspect-ratio: 1;
-  user-select: none;
-  -webkit-user-select: none;
-  touch-action: manipulation;
-}
-.cell {
-  display: grid;
-  place-items: center;
-  min-width: 0;
-  background: var(--cell-b);
-  color: var(--navy);
-  font-family: var(--serif);
-  font-weight: 400;
-  font-size: 6cqi;
-  line-height: 1;
-  cursor: pointer;
-}
-.cell.a {
-  background: var(--cell-a);
-}
-.cell.given {
-  font-weight: 700;
-}
-/* Thick lines after columns 3 and 6 and rows 3 and 6. */
-.cell.box-right {
-  border-right: max(2px, 0.5cqi) solid var(--box-line);
-}
-.cell.box-bottom {
-  border-bottom: max(2px, 0.5cqi) solid var(--box-line);
-}
-.cell.same {
-  background: var(--same);
-  color: var(--on-same);
-}
-.cell.selected {
-  background: var(--navy);
-  color: var(--on-navy);
-}
-.board.paused .cell {
-  color: transparent;
-}
-
-/* Notes: digit d sits at row floor((d-1)/3), column (d-1) % 3 of the cell. */
-.notes {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(3, 1fr);
-  width: 100%;
-  height: 100%;
-  padding: 8%;
-}
-.notes span {
-  display: grid;
-  place-items: center;
-  font-size: 2.4cqi;
-  font-weight: 400;
-}
-.board.paused .notes {
-  visibility: hidden;
-}
-
-.pad {
-  display: flex;
-  align-items: center;
-  gap: 1.1cqi;
-  margin-top: 4.4cqi;
-}
-.pad .key {
-  flex: 1;
-  aspect-ratio: 1 / 0.86;
-  border: 0;
-  border-radius: 0.9cqi;
-  background: var(--navy);
-  color: var(--on-navy);
-  font-family: var(--serif);
-  font-size: 6.6cqi;
-  line-height: 1;
-  padding: 0;
-}
-/* Notes mode. sudoku.js has exactly one state that changes every number key
-   at once, the notes-mode class, so the light keys in screenshots 2 and 3 are
-   taken to be notes mode. (Earlier I read them as "the selected cell already
-   holds a digit"; sudoku.js has no such state.) */
-.pad.notes-mode .key {
-  background: var(--seg-bg);
-  color: var(--navy);
-  box-shadow: inset 0 0 0 1px var(--navy);
-}
-.pad .pencil {
-  flex: 0 0 auto;
-  margin-left: 1.6cqi;
-}
-.pad .pencil svg {
-  width: 7.4cqi;
-  height: 7.4cqi;
-}
-
-/* A digit that is on the board 9 times (numberFull in sudoku.js). How
-   Adressa draws it is not known; faded is my choice. */
-.pad .key.full {
-  opacity: 0.35;
-}
-
-/* ==========================================================================
-   Pause, help and result (texts and behaviour from sudoku.js; their CSS is
-   not in that file, so the look is mine, using the same tokens)
-   ========================================================================== */
-
-.board-wrap {
-  position: relative;
-}
-.pause-overlay {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
+  place-content: center;
   padding: 16px;
-  background: var(--game-bg);
-  color: var(--navy);
-  text-align: center;
 }
-.pause-overlay[hidden] {
-  display: none;
-}
-.pause-overlay .name {
-  margin: 0;
-  font-size: max(26px, 7cqi);
-  font-weight: 700;
-}
-.pause-overlay .subtitle {
-  margin: 0;
-  font-size: max(16px, 3.6cqi);
-  letter-spacing: 0.12em;
-}
-.pause-overlay .wrong {
-  margin: 6px 0;
-  font-weight: 700;
-  color: var(--error);
-}
-.pause-overlay .wrong[hidden] {
-  display: none;
-}
-
-.modal {
-  width: min(460px, calc(100vw - 32px));
-  max-height: calc(100vh - 32px);
-  padding: 24px;
-  border: 0;
-  border-radius: 8px;
-  background: var(--surface);
-  color: var(--navy);
-  font-family: var(--serif);
-  box-shadow: 0 8px 40px rgb(0 0 0 / 0.25);
-}
-.modal::backdrop {
-  background: rgb(0 0 0 / 0.35);
-}
-.modal h2 {
-  margin: 0 0 8px;
-  font-size: 1.6rem;
-}
-.modal h3 {
-  margin: 16px 0 6px;
-  font-size: 1.1rem;
-}
-.modal p {
-  margin: 0 0 10px;
-}
-.modal .btn {
-  margin-top: 12px;
-}
-
-.info {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
+.landing form {
+  display: flex;
   align-items: center;
   gap: 8px;
-  text-align: center;
+  width: min(280px, 100vw - 32px);
+  border-bottom: 1px solid var(--box);
 }
-.info .info-page {
-  text-align: left;
-  min-height: 12em;
-}
-.icon-btn.arrow {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--navy);
-  color: var(--on-navy);
-  font-size: 1.4rem;
-  line-height: 1;
-}
-.shortcuts {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: 10px;
-}
-.shortcuts li {
-  padding-left: 30px;
-  position: relative;
-}
-.shortcuts .ico svg {
-  position: absolute;
-  left: 0;
-  top: 2px;
-  width: 20px;
-  height: 20px;
-  --game-bg: var(--surface);
-}
-
-.result {
-  position: relative;
-  text-align: center;
-}
-.result .close {
-  position: absolute;
-  top: -12px;
-  right: -8px;
+.landing input {
+  flex: 1;
+  min-width: 0;
+  height: 48px;
   border: 0;
-  background: transparent;
-  color: var(--navy);
-  font-size: 1.8rem;
-  line-height: 1;
+  background: none;
+  color: var(--ui-on);
+  font: inherit;
+  font-size: 20px;
 }
-.result h2 {
-  letter-spacing: 0.06em;
+.landing input:focus-visible {
+  outline: none;
 }
-.result .time {
-  font-size: 1.15rem;
+.landing form:focus-within {
+  border-bottom-color: var(--ui);
 }
-.result .level {
-  margin: 0;
-  font-weight: 700;
-  font-size: 1.2rem;
-}
-.result ol {
-  list-style: none;
-  margin: 8px 0 0;
-  padding: 0;
-  font-variant-numeric: tabular-nums;
-}
-.confetti {
-  position: fixed;
-  inset: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: -1;
-  pointer-events: none;
-}
-
-.page.notice {
-  padding-bottom: 0;
+.landing .hint {
+  margin: 10px 0 0;
 }

@@ -2,18 +2,21 @@
 
 Sudoku uten konto. Du velger et brukernavn, og `sudoku.eipi.dev/<brukernavn>` blir spillprofilen din. Det finnes ingen passord: skriver noen inn et brukernavn som er i bruk, havner de på den profilen. Da kan de spille videre der (overta den) eller velge et annet navn.
 
-## Kilder
+## Utseende
 
-| Del | Kilde |
-| --- | --- |
-| Spillets oppførsel | Adressas `sudoku.js` (static.polarismedia.no/hjernetrim/sudoku/prod/sudoku.js), lest som referanse. Ingen kode er kopiert, og filen ligger ikke i repoet. |
-| Spillets utseende | Skjermbilder av Adressas sudoku. CSS-en deres finnes ikke i `sudoku.js`, så fargene er målt fra skjermbildene. |
-| Registrering | Mekanismen fra ntnu.1024.no: skriv et brukernavn og gå rett til profilen. Ikke fargene eller oppsettet. |
-| Forsiden, Importer, Statistikk, Innstillinger, mørk modus | Ingen kilde. Bruker spillets farger og kontroller. |
+Laget for mobil i et mørkt rom. Skjermen viser bare brettet, en rad med tall og tre små ikoner: notater, angre og meny. Ingen klokke, ingen nivåvelger og ingen tekst mens du spiller. Tiden måles likevel, for statistikken.
 
-Fra `sudoku.js`: angre og «fjern alt» (kan angres), samme tall to ganger tømmer ruten, et tall fjernes fra notatene i samme rad, kolonne og boks, notater ligger under et tall og kommer tilbake når det slettes, et notat tømmer tallet i ruten, tallknapper merkes når tallet står 9 ganger, Shift bytter mellom tall og notater, piltaster og WASD flytter (venstre/høyre rundt i raden, opp/ned rundt i kolonnen), pause med «Sudoku / PAUSE / Fortsett» som også slår inn når vinduet mister fokus eller fanen skjules, «Noe er feil i løsningen din» når et fullt brett er feil, og konfetti i 5 sekunder med «GRATULERER», tiden og de 4 beste tidene på nivået. Et klikk på et nivå starter alltid et nytt brett. Hjelpen har to sider og viser «Start» første gang.
+Menyen (⋯) åpnes som et ark nederst:
 
-Ikke i `sudoku.js`, lagt til her: nivået «Veldig lett», Ctrl+Z / Ctrl+Y (gjør om), Delete, Backspace på en tom rute sletter notatene, ingen inntasting under pause, spørsmål før du forlater et påbegynt brett (det lagres som ikke fullført i statistikken), innstillinger for markering av like tall, tidtaker og automatisk fjerning av notater, og mørk modus. Tekstene i hjelpen er skrevet på nytt. Utseendet på pause, hjelp, resultat og fulle tallknapper er mitt eget, fordi CSS-en mangler.
+- nytt brett, nivå 1–5
+- fem fargepaletter: svart (standard), rødt nattlys, rav, blå og lys
+- lysstyrke, som demper alt unntatt svart
+- marker like tall, rydd notater
+- importer, statistikk og bytt profil
+
+Ingen systemdialoger, fordi `confirm()` og `alert()` lyser opp rommet. Sletting krever i stedet to trykk.
+
+Spillereglene for input (samme tall tømmer ruten, notater ligger under et tall, et notat tømmer tallet, et tall fjernes fra notatene i rad, kolonne og boks) ble opprinnelig hentet fra Adressas `sudoku.js`, lest som referanse. Ingen kode er kopiert, og filen ligger ikke i repoet. Registreringen følger mekanismen fra ntnu.1024.no: skriv et navn og gå rett til profilen.
 
 ## Kjør
 
@@ -95,12 +98,12 @@ Fordi profilene er åpne med vilje, kan hvem som helst endre eller slette en pro
 ```
 puzzles/                 innebygd bibliotek (dine filer)
 public/index.html        ett HTML-skall for / og /<brukernavn>
-public/css/style.css     alt utseende, lys og mørk modus
+public/css/style.css     alt utseende og fargepalettene
 public/js/main.js        ruter: forside eller profil
 public/js/landing.js     forsiden
-public/js/profile.js     profil: lasting, lagring, valg av brett, sider
+public/js/profile.js     profil: lasting, lagring, valg av brett, meny, paletter
 public/js/board-view.js  spillet (tegning og input)
-public/js/pages.js       Importer, Statistikk, Innstillinger
+public/js/pages.js       Importer og Statistikk
 public/js/engine.js      notasjon, løser, gradering, generator, import-parser
 public/js/game-state.js  spillregler uten DOM: notater, angre, feil, hint
 public/js/stats.js       statistikk fra spillhistorikken

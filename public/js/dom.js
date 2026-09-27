@@ -39,49 +39,24 @@ function svg(inner, attrs = {}) {
   return el;
 }
 
-// Icons drawn after the shapes in the Adressa screenshots. Adressa uses the
-// Font Awesome icons circle-pause, circle-play, rotate-left (undo), trash-can
-// (clear the board), pen-to-square (notes) and circle-question (help); these
-// are my own drawings of the same ideas, not Font Awesome's paths.
+// Thin line icons, drawn for this app.
+const line = { fill: 'none', stroke: 'currentColor', 'stroke-width': 1.5, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' };
+
 export const icons = {
-  pause: () =>
+  pencil: () => svg([['path', { d: 'M4 20l1-4.5L15.5 5a2 2 0 0 1 2.8 0l.7.7a2 2 0 0 1 0 2.8L8.5 19z', ...line }], ['path', { d: 'M13.5 7l3.5 3.5', ...line }]]),
+  undo: () => svg([['path', { d: 'M9 14L4 9l5-5', ...line }], ['path', { d: 'M4 9h10a6 6 0 0 1 0 12h-3', ...line }]]),
+  menu: () =>
     svg([
-      ['circle', { cx: 12, cy: 12, r: 12, fill: 'currentColor' }],
-      ['rect', { x: 8, y: 7, width: 2.8, height: 10, rx: 1.4, fill: 'var(--game-bg)' }],
-      ['rect', { x: 13.2, y: 7, width: 2.8, height: 10, rx: 1.4, fill: 'var(--game-bg)' }],
+      ['circle', { cx: 5, cy: 12, r: 1.4, fill: 'currentColor' }],
+      ['circle', { cx: 12, cy: 12, r: 1.4, fill: 'currentColor' }],
+      ['circle', { cx: 19, cy: 12, r: 1.4, fill: 'currentColor' }],
     ]),
-  play: () =>
+  next: () => svg([['path', { d: 'M4 12h16M14 6l6 6-6 6', ...line }]]),
+  back: () => svg([['path', { d: 'M20 12H4M10 6l-6 6 6 6', ...line }]]),
+  sun: () =>
     svg([
-      ['circle', { cx: 12, cy: 12, r: 12, fill: 'currentColor' }],
-      ['path', { d: 'M9.5 7.2v9.6l7.6-4.8z', fill: 'var(--game-bg)' }],
-    ]),
-  undo: () =>
-    svg([
-      ['path', { d: 'M5.2 9.2A7.6 7.6 0 1 1 7.4 18', fill: 'none', stroke: 'currentColor', 'stroke-width': 2.8, 'stroke-linecap': 'round' }],
-      ['path', { d: 'M3.2 3.8v6.6h6.6', fill: 'none', stroke: 'currentColor', 'stroke-width': 2.8, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }],
-    ]),
-  trash: () =>
-    svg([
-      ['path', { d: 'M9 2.5h6l.8 1.7H20a1 1 0 0 1 1 1v1.3H3V5.2a1 1 0 0 1 1-1h4.2z', fill: 'currentColor' }],
-      [
-        'path',
-        {
-          d: 'M4.3 7.8h15.4l-1.1 13a1.8 1.8 0 0 1-1.8 1.7H7.2a1.8 1.8 0 0 1-1.8-1.7zM8.2 10.3v9h1.8v-9zm3 0v9h1.8v-9zm3 0v9h1.8v-9z',
-          fill: 'currentColor',
-          'fill-rule': 'evenodd',
-        },
-      ],
-    ]),
-  pencil: () =>
-    svg([
-      ['path', { d: 'M12 4.5H6a2.5 2.5 0 0 0-2.5 2.5v11A2.5 2.5 0 0 0 6 20.5h11a2.5 2.5 0 0 0 2.5-2.5v-6', fill: 'none', stroke: 'currentColor', 'stroke-width': 2.8, 'stroke-linecap': 'round' }],
-      ['path', { d: 'M18.6 2.6a2 2 0 0 1 2.8 0l.9.9a2 2 0 0 1 0 2.8l-8.8 8.8-4.4 1.2 1.2-4.4z', fill: 'currentColor' }],
-    ]),
-  question: () =>
-    svg([
-      ['circle', { cx: 12, cy: 12, r: 12, fill: 'currentColor' }],
-      ['path', { d: 'M8.9 9.3a3.1 3.1 0 1 1 4.6 2.7c-.9.5-1.5 1.1-1.5 2.1v.6', fill: 'none', stroke: 'var(--game-bg)', 'stroke-width': 2.4, 'stroke-linecap': 'round' }],
-      ['circle', { cx: 12, cy: 18.2, r: 1.5, fill: 'var(--game-bg)' }],
+      ['circle', { cx: 12, cy: 12, r: 4, ...line }],
+      ['path', { d: 'M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4', ...line }],
     ]),
 };
 
@@ -92,12 +67,6 @@ export function formatTime(sec) {
   const ss = sec % 60;
   const p = (n) => String(n).padStart(2, '0');
   return hh ? `${hh}:${p(mm)}:${p(ss)}` : `${mm}:${p(ss)}`;
-}
-
-/** Game clock as Adressa shows it: minutes and seconds, minutes unbounded. */
-export function formatClock(sec) {
-  sec = Math.max(0, Math.floor(sec || 0));
-  return `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`;
 }
 
 /** Long durations: "3 t 12 min", "12 min", "45 s". */
