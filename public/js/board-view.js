@@ -90,6 +90,25 @@ export class BoardView {
     this.runningSince = null;
   }
 
+  /**
+   * While the appearance panel is open: if nothing is marked, mark the digit
+   * that is on the board most often, so the marking settings can be seen.
+   */
+  previewMark(on) {
+    if (!this.game) return;
+    if (on && this.selected < 0 && !this.focusDigit) {
+      const count = new Array(10).fill(0);
+      for (const v of this.game.values) count[v]++;
+      count[0] = 0;
+      this.focusDigit = count.indexOf(Math.max(...count));
+      this.previewing = true;
+    } else if (!on && this.previewing) {
+      this.focusDigit = 0;
+      this.previewing = false;
+    }
+    this.render();
+  }
+
   /** The menu holds the clock while it is open. */
   hold(on) {
     this.held = on;
