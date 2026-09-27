@@ -45,8 +45,8 @@ test('validatePuzzle explains every kind of rejection', () => {
   assert.match(E.validatePuzzle(P, badSol).error, /stemmer ikke/);
 });
 
-test('grade matches the labels in 1.csv for labelled puzzles', () => {
-  const text = fs.readFileSync(path.join(import.meta.dirname, '..', 'puzzles', '1.csv'), 'utf8');
+test('grade matches the labels of the first 100 library puzzles', () => {
+  const text = fs.readFileSync(path.join(import.meta.dirname, '..', 'puzzles', 'eksempler', 'csv-med-overskrift.csv'), 'utf8');
   const { entries } = E.parseImport(text);
   let checked = 0;
   for (const e of entries) {
@@ -92,13 +92,26 @@ test('parseImport reports junk lines by line number', () => {
   assert.deepEqual(errors.map((e) => e.line), [2]);
 });
 
-test('all puzzle files parse and validate', () => {
+test('all puzzle files parse and validate, examples included', () => {
   const dir = path.join(import.meta.dirname, '..', 'puzzles');
-  for (const f of fs.readdirSync(dir)) {
+  const files = fs.readdirSync(dir, { recursive: true }).filter((f) => /\.(csv|txt|json|jsonl)$/.test(f));
+  assert.ok(files.includes('bibliotek.jsonl') && files.length >= 6, files.join(', '));
+  for (const f of files) {
     const { entries, errors } = E.parseImport(fs.readFileSync(path.join(dir, f), 'utf8'));
     assert.equal(errors.length, 0, f);
+    assert.ok(entries.length > 0, f);
     for (const e of entries) assert.ok(E.validatePuzzle(e.puzzle, e.solution).ok, `${f}:${e.line}`);
   }
+});
+
+test('the three example notations hold the same 100 puzzles', () => {
+  const dir = path.join(import.meta.dirname, '..', 'puzzles', 'eksempler');
+  const sets = ['csv-med-overskrift.csv', 'brett-og-losning.txt', 'ett-brett-per-linje.txt'].map(
+    (f) => E.parseImport(fs.readFileSync(path.join(dir, f), 'utf8')).entries.map((e) => e.puzzle).join('\n'),
+  );
+  assert.equal(sets[0].split('\n').length, 100);
+  assert.equal(sets[1], sets[0]);
+  assert.equal(sets[2], sets[0]);
 });
 
 test('generate returns unique puzzles of the requested difficulty', () => {
