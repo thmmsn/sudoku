@@ -1,5 +1,5 @@
 // Game model without any DOM: values, notes, undo/redo, mistakes, hints and
-// completion. The (not yet designed) view only reads this state and calls these
+// completion. The view (board-view.js) only reads this state and calls these
 // methods, so all rules live here and are covered by tests.
 //
 // Notes are 9 bit masks per cell, bit (d - 1) meaning "d is pencilled in".
@@ -42,6 +42,11 @@ export class GameState {
 
   isComplete() {
     return this.values.every((v, i) => v === this.sol[i]);
+  }
+
+  /** Every cell holds a digit, right or wrong. */
+  isFull() {
+    return this.values.every(Boolean);
   }
 
   hasProgress() {
@@ -115,13 +120,20 @@ export class GameState {
   /**
    * Places digit d in cell i. Placing the digit that is already there clears
    * the cell. Returns { changed, wrong, completed }.
+   *
+   * As in Adressa's sudoku.js, the notes of the cell stay underneath the digit
+   * (they are hidden while the digit is there and come back when it is
+   * cleared), and the digit is removed from the notes in its row, column and
+   * box, including the cell itself. Adressa always does the removal; here it is
+   * the autoRemoveNotes option.
    */
   setValue(i, d) {
     if (!this.canEdit(i) || !(d >= 1 && d <= 9)) return { changed: false, wrong: false, completed: false };
-    if (this.values[i] === d) return { ...this.erase(i), wrong: false };
+    if (this.values[i] === d) return { ...this.clearValue(i), wrong: false };
     const bit = 1 << (d - 1);
-    const changes = [{ i, v: d, n: 0 }];
-    if (this.options.autoRemoveNotes) {
+    const auto = this.options.autoRemoveNotes;
+    const changes = [{ i, v: d, n: auto ? this.notes[i] & ~bit : this.notes[i] }];
+    if (auto) {
       for (const p of PEERS[i]) {
         if (this.notes[p] & bit) changes.push({ i: p, v: this.values[p], n: this.notes[p] & ~bit });
       }
@@ -132,15 +144,28 @@ export class GameState {
     return { changed, wrong, completed: this.isComplete() };
   }
 
-  /** Toggles pencil mark d in cell i. Not allowed while the cell holds a digit. */
+  /**
+   * Toggles pencil mark d in cell i. As in Adressa's sudoku.js, a digit in the
+   * cell is cleared at the same time.
+   */
   toggleNote(i, d) {
-    if (!this.canEdit(i) || this.values[i] || !(d >= 1 && d <= 9)) return { changed: false };
+    if (!this.canEdit(i) || !(d >= 1 && d <= 9)) return { changed: false };
     return { changed: this.commit([{ i, v: 0, n: this.notes[i] ^ (1 << (d - 1)) }]) };
   }
 
-  /** Clears the digit, or if there is none, the notes of cell i. */
+  /** Clears the digit of cell i; its notes show again. */
+  clearValue(i) {
+    if (!this.canEdit(i)) return { changed: false, completed: false };
+    return { changed: this.commit([{ i, v: 0, n: this.notes[i] }]), completed: false };
+  }
+
+  /**
+   * Backspace: clears the digit (as in Adressa). With no digit, clears the
+   * notes instead, which Adressa does not do.
+   */
   erase(i) {
     if (!this.canEdit(i)) return { changed: false, completed: false };
+    if (this.values[i]) return this.clearValue(i);
     return { changed: this.commit([{ i, v: 0, n: 0 }]), completed: false };
   }
 

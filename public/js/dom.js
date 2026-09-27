@@ -39,7 +39,10 @@ function svg(inner, attrs = {}) {
   return el;
 }
 
-// Icons drawn after the shapes in the Adressa screenshots.
+// Icons drawn after the shapes in the Adressa screenshots. Adressa uses the
+// Font Awesome icons circle-pause, circle-play, rotate-left (undo), trash-can
+// (clear the board), pen-to-square (notes) and circle-question (help); these
+// are my own drawings of the same ideas, not Font Awesome's paths.
 export const icons = {
   pause: () =>
     svg([
@@ -52,7 +55,7 @@ export const icons = {
       ['circle', { cx: 12, cy: 12, r: 12, fill: 'currentColor' }],
       ['path', { d: 'M9.5 7.2v9.6l7.6-4.8z', fill: 'var(--game-bg)' }],
     ]),
-  restart: () =>
+  undo: () =>
     svg([
       ['path', { d: 'M5.2 9.2A7.6 7.6 0 1 1 7.4 18', fill: 'none', stroke: 'currentColor', 'stroke-width': 2.8, 'stroke-linecap': 'round' }],
       ['path', { d: 'M3.2 3.8v6.6h6.6', fill: 'none', stroke: 'currentColor', 'stroke-width': 2.8, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }],
@@ -74,8 +77,12 @@ export const icons = {
       ['path', { d: 'M12 4.5H6a2.5 2.5 0 0 0-2.5 2.5v11A2.5 2.5 0 0 0 6 20.5h11a2.5 2.5 0 0 0 2.5-2.5v-6', fill: 'none', stroke: 'currentColor', 'stroke-width': 2.8, 'stroke-linecap': 'round' }],
       ['path', { d: 'M18.6 2.6a2 2 0 0 1 2.8 0l.9.9a2 2 0 0 1 0 2.8l-8.8 8.8-4.4 1.2 1.2-4.4z', fill: 'currentColor' }],
     ]),
-  arrow: () =>
-    svg([['path', { d: 'M4 12h15M13 6l6 6-6 6', fill: 'none', stroke: 'currentColor', 'stroke-width': 2.6, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }]]),
+  question: () =>
+    svg([
+      ['circle', { cx: 12, cy: 12, r: 12, fill: 'currentColor' }],
+      ['path', { d: 'M8.9 9.3a3.1 3.1 0 1 1 4.6 2.7c-.9.5-1.5 1.1-1.5 2.1v.6', fill: 'none', stroke: 'var(--game-bg)', 'stroke-width': 2.4, 'stroke-linecap': 'round' }],
+      ['circle', { cx: 12, cy: 18.2, r: 1.5, fill: 'var(--game-bg)' }],
+    ]),
 };
 
 export function formatTime(sec) {
@@ -85,6 +92,12 @@ export function formatTime(sec) {
   const ss = sec % 60;
   const p = (n) => String(n).padStart(2, '0');
   return hh ? `${hh}:${p(mm)}:${p(ss)}` : `${mm}:${p(ss)}`;
+}
+
+/** Game clock as Adressa shows it: minutes and seconds, minutes unbounded. */
+export function formatClock(sec) {
+  sec = Math.max(0, Math.floor(sec || 0));
+  return `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`;
 }
 
 /** Long durations: "3 t 12 min", "12 min", "45 s". */

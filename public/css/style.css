@@ -1,14 +1,13 @@
-/* Visual sources:
-     - Game: screenshots of adressa.no/hjernetrim/sudoku (colors measured by eye
-       from the screenshots, not from their CSS).
-     - Landing page: screenshot of ntnu.1024.no.
-     - Import, statistics, settings and dark mode have no source; they reuse the
-       landing page's visual language. */
+/* Visual source: screenshots of adressa.no/hjernetrim/sudoku (colors measured
+   by eye from the screenshots, not taken from their CSS).
+
+   Everything outside the game (landing page, import, statistics, settings,
+   dark mode) has no screenshot. Those parts reuse the same tokens: navy,
+   light grey, serif, filled navy buttons like the number keys and segmented
+   controls like the level picker. */
 
 :root {
   color-scheme: light;
-
-  /* Adressa-style game */
   --navy: #225076;
   --same: #8da5b8;
   --cell-a: #e8e8e8; /* checkerboard, (row + col) even */
@@ -20,36 +19,17 @@
   --on-navy: #ffffff;
   --on-same: #ffffff;
 
-  /* 1024-style pages */
-  --page: #ffffff;
-  --ink: #000000;
-  --ink-2: #333333;
-  --muted: #666666;
-  --rule: #d0d0d0;
-  --note-bg: #ffffcc;
-  --note-border: #cfcfa8;
-  --button: #0a7cff;
-  --link: #000000;
-  --input-border: #cccccc;
-  --error: #b00020;
-
-  /* ColorBrewer Pastel2, in the order the landing page screenshot shows. */
-  --bar-1: #fdcdac;
-  --bar-2: #cbd5e8;
-  --bar-3: #f4cae4;
-  --bar-4: #e6f5c9;
-  --bar-5: #fff2ae;
-  --bar-6: #f1e2cc;
-  --bar-7: #cccccc;
-  --bar-8: #b3e2cd;
-  --bar-ink: #000000;
+  /* Derived, not in the screenshots. */
+  --surface: #ffffff;
+  --muted: #5b6b79;
+  --hairline: #d6d6d6;
+  --error: #b3261e;
 
   --serif: Georgia, 'Times New Roman', serif;
-  --sans: 'Helvetica Neue', Helvetica, Arial, sans-serif;
   --board-max: 540px;
 }
 
-/* Dark mode: not in any source, own design. Same structure, darker steps. */
+/* Dark mode: not in any source, own design with the same roles. */
 @media (prefers-color-scheme: dark) {
   :root:where(:not([data-theme='light'])) {
     color-scheme: dark;
@@ -62,26 +42,10 @@
     --game-bg: #111111;
     --seg-bg: #262626;
     --on-navy: #0b1620;
-    --page: #111111;
-    --ink: #f2f2f2;
-    --ink-2: #d0d0d0;
-    --muted: #a0a0a0;
-    --rule: #3a3a3a;
-    --note-bg: #34321c;
-    --note-border: #5a5738;
-    --button: #3b8cff;
-    --link: #f2f2f2;
-    --input-border: #555555;
-    --error: #ff6b81;
-    --bar-1: #8a5a3c;
-    --bar-2: #4f5f7d;
-    --bar-3: #7d4f6d;
-    --bar-4: #5b6e3f;
-    --bar-5: #7a6c2e;
-    --bar-6: #6e5f48;
-    --bar-7: #5a5a5a;
-    --bar-8: #3f6e5a;
-    --bar-ink: #ffffff;
+    --surface: #1a1a1a;
+    --muted: #9fb3c6;
+    --hairline: #333333;
+    --error: #ff8a80;
   }
 }
 :root[data-theme='dark'] {
@@ -95,26 +59,10 @@
   --game-bg: #111111;
   --seg-bg: #262626;
   --on-navy: #0b1620;
-  --page: #111111;
-  --ink: #f2f2f2;
-  --ink-2: #d0d0d0;
-  --muted: #a0a0a0;
-  --rule: #3a3a3a;
-  --note-bg: #34321c;
-  --note-border: #5a5738;
-  --button: #3b8cff;
-  --link: #f2f2f2;
-  --input-border: #555555;
-  --error: #ff6b81;
-  --bar-1: #8a5a3c;
-  --bar-2: #4f5f7d;
-  --bar-3: #7d4f6d;
-  --bar-4: #5b6e3f;
-  --bar-5: #7a6c2e;
-  --bar-6: #6e5f48;
-  --bar-7: #5a5a5a;
-  --bar-8: #3f6e5a;
-  --bar-ink: #ffffff;
+  --surface: #1a1a1a;
+  --muted: #9fb3c6;
+  --hairline: #333333;
+  --error: #ff8a80;
 }
 
 *,
@@ -126,15 +74,15 @@
 html,
 body {
   margin: 0;
-  background: var(--page);
-  color: var(--ink);
-  font-family: var(--sans);
+  background: var(--game-bg);
+  color: var(--navy);
+  font-family: var(--serif);
   font-size: 17px;
-  line-height: 1.4;
+  line-height: 1.45;
 }
 
 a {
-  color: var(--link);
+  color: var(--navy);
 }
 
 button {
@@ -143,7 +91,7 @@ button {
 }
 
 :focus-visible {
-  outline: 2px solid var(--button);
+  outline: 2px solid var(--navy);
   outline-offset: 2px;
 }
 
@@ -156,242 +104,258 @@ button {
   white-space: nowrap;
 }
 
+.muted {
+  color: var(--muted);
+}
+
 /* ==========================================================================
-   1024-style page frame (landing, import, statistics, settings)
+   Shared controls (derived from the number keys and the level picker)
    ========================================================================== */
 
-.site {
-  max-width: 1760px;
-  margin: 0 auto;
-  padding: 0 16px 32px;
-}
-
-.site-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 4px 24px;
-  padding: 4px 22px 2px;
-  border-bottom: 2px solid var(--rule);
-}
-.site-head h1 {
-  margin: 0;
-  font-family: var(--serif);
-  font-weight: 700;
-  font-size: clamp(1.5rem, 3.4vw, 2.3rem);
-  letter-spacing: -0.005em;
-}
-.site-head h1 a {
-  color: inherit;
-  text-decoration: none;
-}
-.site-nav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 18px;
-  font-size: 1.05rem;
-}
-.site-nav a[aria-current='page'] {
-  font-weight: 700;
-  text-decoration: none;
-}
-
-.columns {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 16px;
-  padding: 0 8px;
-}
-@media (max-width: 800px) {
-  .columns {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-
-.section-title {
-  margin: 28px 0 22px;
-  padding: 0 14px 2px;
-  border-bottom: 2px solid var(--rule);
-  font-family: var(--serif);
-  font-weight: 700;
-  font-size: 1.55rem;
-}
-.full {
-  padding: 0 8px;
-}
-.section-body {
-  padding: 0 14px;
-}
-
-.note-box {
-  background: var(--note-bg);
-  border: 2px solid var(--note-border);
-  border-radius: 6px;
-  padding: 12px 12px 12px;
-  font-size: 1.3rem;
-  line-height: 1.3;
-}
-.note-box p {
-  margin: 0 0 10px;
-}
-.note-box .row {
-  display: flex;
-  justify-content: flex-end;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.note-box input[type='text'] {
-  width: 200px;
-  max-width: 100%;
-  font: inherit;
-  font-size: 1.1rem;
-  padding: 6px 8px;
-  border: 1px solid var(--input-border);
-  border-radius: 6px;
-  background: var(--page);
-  color: var(--ink);
-}
-.note-box textarea {
-  width: 100%;
-  min-height: 180px;
-  font-family: ui-monospace, Menlo, Consolas, monospace;
-  font-size: 0.9rem;
-  padding: 8px;
-  border: 1px solid var(--input-border);
-  border-radius: 6px;
-  background: var(--page);
-  color: var(--ink);
-  margin-bottom: 10px;
-  resize: vertical;
-}
-.go {
+.btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  padding: 3px 10px;
+  min-height: 42px;
+  padding: 6px 18px;
   border: 0;
   border-radius: 6px;
-  background: var(--button);
-  color: #fff;
-  font-size: 1.25rem;
+  background: var(--navy);
+  color: var(--on-navy);
+  font-family: var(--serif);
+  font-size: 1.05rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
 }
-.go svg {
+.btn.secondary {
+  background: var(--seg-bg);
+  color: var(--navy);
+  box-shadow: inset 0 0 0 1px var(--navy);
+}
+.btn[disabled] {
+  opacity: 0.5;
+  cursor: default;
+}
+
+input[type='text'],
+select,
+textarea {
+  font-family: var(--serif);
+  font-size: 1.05rem;
+  color: var(--navy);
+  background: var(--surface);
+  border: 1px solid var(--cell-line);
+  border-radius: 6px;
+  padding: 8px 10px;
+  min-height: 42px;
+}
+textarea {
+  width: 100%;
+  min-height: 200px;
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 0.9rem;
+  resize: vertical;
+}
+input[type='checkbox'],
+input[type='range'] {
+  accent-color: var(--navy);
+}
+input[type='checkbox'] {
   width: 20px;
   height: 20px;
 }
-.go.secondary {
-  background: transparent;
-  color: var(--ink);
-  border: 1px solid var(--input-border);
-}
-.field-error {
-  color: var(--error);
-  font-size: 1rem;
-  margin: 8px 0 0;
-  text-align: right;
-}
-.below-note {
-  margin: 18px 0 0;
-  font-size: 1.15rem;
-}
 
-table.plain {
-  border-collapse: collapse;
-  font-size: 1.15rem;
-  margin: 0 10px;
+/* Segmented control, same look as the level picker. */
+.seg {
+  display: inline-flex;
+  flex-wrap: wrap;
+  background: var(--seg-bg);
+  border-radius: 6px;
+  overflow: hidden;
 }
-table.plain td,
-table.plain th {
-  padding: 4px 24px 4px 12px;
-  text-align: left;
-  vertical-align: top;
-}
-table.plain th {
+.seg > a,
+.seg > button {
+  position: relative;
+  padding: 7px 14px;
+  border: 0;
+  background: transparent;
+  color: var(--navy);
+  font-family: var(--serif);
   font-weight: 700;
   font-size: 1rem;
-  color: var(--ink-2);
-  border-bottom: 1px solid var(--rule);
+  text-decoration: none;
+  white-space: nowrap;
 }
-table.plain td.n,
-table.plain th.n {
-  text-align: right;
-  font-variant-numeric: tabular-nums;
+.seg > * + *::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 1.5px;
+  background: var(--navy);
 }
-table.plain tr.muted td {
-  color: var(--muted);
+.seg > [aria-current='page'],
+.seg > [aria-pressed='true'] {
+  background: var(--navy);
+  color: var(--on-navy);
 }
+.seg > [aria-current='page']::before,
+.seg > [aria-current='page'] + *::before,
+.seg > [aria-pressed='true']::before,
+.seg > [aria-pressed='true'] + *::before {
+  display: none;
+}
+
+/* ==========================================================================
+   Page frame
+   ========================================================================== */
+
+.app-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 20px;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 14px 16px 0;
+}
+.app-head .title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+.app-head .title a {
+  text-decoration: none;
+}
+.app-head .who {
+  font-weight: 400;
+}
+@media (max-width: 560px) {
+  .app-head .seg {
+    width: 100%;
+  }
+  .app-head .seg > * {
+    flex: 1;
+    padding: 7px 4px;
+    text-align: center;
+    font-size: 0.92rem;
+  }
+}
+
+.page {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 8px 16px 48px;
+}
+.page h2 {
+  margin: 28px 0 12px;
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+.page h2:first-child {
+  margin-top: 16px;
+}
+.page p {
+  margin: 0 0 12px;
+}
+
+.panel {
+  background: var(--surface);
+  border-radius: 6px;
+  padding: 16px;
+}
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.msg {
+  margin: 10px 0 0;
+}
+.msg.error {
+  color: var(--error);
+}
+.msg ul {
+  margin: 6px 0 0;
+  padding-left: 20px;
+  max-height: 180px;
+  overflow: auto;
+}
+
+/* Tables: thin lines like the thin cell lines. */
 .table-scroll {
   overflow-x: auto;
 }
-
-/* Horizontal bars: label inside at the left, value inside at the end. */
-.hbars {
-  list-style: none;
-  margin: 0 0 0 14px;
-  padding: 2px 0;
-  border-left: 3px solid var(--rule);
+table.data {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+  border-radius: 6px;
+  overflow: hidden;
 }
-.hbars li {
-  margin: 0 0 2px 0;
+table.data th,
+table.data td {
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--hairline);
 }
-.hbars .bar {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  min-width: max-content;
-  padding: 3px 10px;
-  border-radius: 0 3px 3px 0;
-  color: var(--bar-ink);
-  font-size: 1.15rem;
-  line-height: 1.35;
-  text-decoration: none;
+table.data tr:last-child td {
+  border-bottom: 0;
 }
-.hbars a.bar:hover {
-  text-decoration: underline;
+table.data th {
+  font-size: 0.9rem;
+  color: var(--muted);
+  font-weight: 700;
 }
-.hbars .value {
+table.data .n {
+  text-align: right;
   font-variant-numeric: tabular-nums;
 }
-.hbars li:nth-child(8n + 1) .bar { background: var(--bar-1); }
-.hbars li:nth-child(8n + 2) .bar { background: var(--bar-2); }
-.hbars li:nth-child(8n + 3) .bar { background: var(--bar-3); }
-.hbars li:nth-child(8n + 4) .bar { background: var(--bar-4); }
-.hbars li:nth-child(8n + 5) .bar { background: var(--bar-5); }
-.hbars li:nth-child(8n + 6) .bar { background: var(--bar-6); }
-.hbars li:nth-child(8n + 7) .bar { background: var(--bar-7); }
-.hbars li:nth-child(8n + 8) .bar { background: var(--bar-8); }
-
-.empty-note {
+table.data tr.dim td {
   color: var(--muted);
-  font-size: 1.1rem;
-  margin: 0 14px;
 }
 
-.site-foot {
-  margin-top: 48px;
-  border-top: 2px solid var(--rule);
-  padding-top: 18px;
-  color: var(--ink-2);
-  font-size: 1.1rem;
+/* Single-series horizontal bars: label, navy bar, value. */
+.bars {
+  list-style: none;
+  margin: 0;
+  padding: 12px 16px;
+  background: var(--surface);
+  border-radius: 6px;
+  display: grid;
+  grid-template-columns: max-content 1fr max-content;
+  gap: 8px 12px;
+  align-items: center;
 }
-.site-foot .columns p {
-  margin: 0 0 12px;
-  padding: 0 10px;
+.bars li {
+  display: contents;
 }
-.site-foot .center {
-  margin-top: 18px;
-  padding-top: 14px;
-  border-top: 1px solid var(--rule);
-  text-align: center;
-  font-size: 1.05rem;
+.bars .track {
+  height: 18px;
+}
+.bars .fill {
+  height: 100%;
+  min-width: 4px;
+  background: var(--navy);
+  border-radius: 0 4px 4px 0;
+}
+.bars .value {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
 }
 
 .settings-list {
   list-style: none;
   margin: 0;
-  padding: 0 14px;
-  font-size: 1.1rem;
+  padding: 0 16px;
+  background: var(--surface);
+  border-radius: 6px;
 }
 .settings-list li {
   display: flex;
@@ -399,38 +363,51 @@ table.plain tr.muted td {
   align-items: center;
   justify-content: space-between;
   gap: 8px 24px;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--rule);
+  padding: 12px 0;
+  border-bottom: 1px solid var(--hairline);
+}
+.settings-list li:last-child {
+  border-bottom: 0;
 }
 .settings-list .help {
   display: block;
   color: var(--muted);
   font-size: 0.92rem;
 }
-.settings-list select,
-.settings-list input[type='range'] {
-  font: inherit;
-  font-size: 1rem;
-  color: var(--ink);
-  background: var(--page);
-}
-.settings-list select {
-  padding: 4px 6px;
-  border: 1px solid var(--input-border);
-  border-radius: 6px;
-}
-.settings-list input[type='checkbox'] {
-  width: 20px;
-  height: 20px;
-  accent-color: var(--button);
-}
 
-.flash-msg {
-  margin: 10px 14px 0;
-  font-size: 1.05rem;
+/* ==========================================================================
+   Landing
+   ========================================================================== */
+
+.landing {
+  max-width: 540px;
+  margin: 0 auto;
+  padding: 12vh 16px 48px;
 }
-.flash-msg.error {
+.landing h1 {
+  margin: 0 0 8px;
+  font-size: 2.6rem;
+  font-weight: 700;
+}
+.landing .lead {
+  margin: 0 0 20px;
+  font-size: 1.1rem;
+}
+.landing form input {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+.landing .field-error {
   color: var(--error);
+  margin: 8px 0 0;
+}
+.landing .explain {
+  margin: 16px 0 0;
+  color: var(--muted);
+}
+.landing h2 {
+  margin: 40px 0 12px;
+  font-size: 1.2rem;
 }
 
 /* ==========================================================================
@@ -462,6 +439,15 @@ table.plain tr.muted td {
   display: flex;
   align-items: center;
   gap: 2.5cqi;
+}
+.game-bar .left {
+  order: 0;
+}
+.game-bar .levels {
+  order: 1;
+}
+.game-bar .right {
+  order: 2;
 }
 .timer {
   min-width: 3.2em;
@@ -503,13 +489,15 @@ table.plain tr.muted td {
   padding: 1.2cqi 2.2cqi;
   white-space: nowrap;
 }
-/* Five levels do not fit beside the timer on narrow boards: own row. */
+/* Narrow: levels on their own row above the timer and the tools. sudoku.js
+   does this when screen.width < 700 on a touch device; here the trigger is
+   the width of the game, because five levels need more room than four. */
 @container (max-width: 600px) {
   .game-bar {
     row-gap: 3cqi;
   }
-  .levels {
-    order: 3;
+  .game-bar .levels {
+    order: -1;
     width: 100%;
   }
   .levels button {
@@ -627,8 +615,11 @@ table.plain tr.muted td {
   line-height: 1;
   padding: 0;
 }
-/* Light variant: selected cell already holds a digit (screenshots 2 and 3). */
-.pad.light .key {
+/* Notes mode. sudoku.js has exactly one state that changes every number key
+   at once, the notes-mode class, so the light keys in screenshots 2 and 3 are
+   taken to be notes mode. (Earlier I read them as "the selected cell already
+   holds a digit"; sudoku.js has no such state.) */
+.pad.notes-mode .key {
   background: var(--seg-bg);
   color: var(--navy);
   box-shadow: inset 0 0 0 1px var(--navy);
@@ -642,11 +633,164 @@ table.plain tr.muted td {
   height: 7.4cqi;
 }
 
-.status-line {
-  min-height: 1.5em;
-  margin-top: 3cqi;
-  font-family: var(--serif);
+/* A digit that is on the board 9 times (numberFull in sudoku.js). How
+   Adressa draws it is not known; faded is my choice. */
+.pad .key.full {
+  opacity: 0.35;
+}
+
+/* ==========================================================================
+   Pause, help and result (texts and behaviour from sudoku.js; their CSS is
+   not in that file, so the look is mine, using the same tokens)
+   ========================================================================== */
+
+.board-wrap {
+  position: relative;
+}
+.pause-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px;
+  background: var(--game-bg);
   color: var(--navy);
-  font-size: max(15px, 3cqi);
   text-align: center;
+}
+.pause-overlay[hidden] {
+  display: none;
+}
+.pause-overlay .name {
+  margin: 0;
+  font-size: max(26px, 7cqi);
+  font-weight: 700;
+}
+.pause-overlay .subtitle {
+  margin: 0;
+  font-size: max(16px, 3.6cqi);
+  letter-spacing: 0.12em;
+}
+.pause-overlay .wrong {
+  margin: 6px 0;
+  font-weight: 700;
+  color: var(--error);
+}
+.pause-overlay .wrong[hidden] {
+  display: none;
+}
+
+.modal {
+  width: min(460px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
+  padding: 24px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--navy);
+  font-family: var(--serif);
+  box-shadow: 0 8px 40px rgb(0 0 0 / 0.25);
+}
+.modal::backdrop {
+  background: rgb(0 0 0 / 0.35);
+}
+.modal h2 {
+  margin: 0 0 8px;
+  font-size: 1.6rem;
+}
+.modal h3 {
+  margin: 16px 0 6px;
+  font-size: 1.1rem;
+}
+.modal p {
+  margin: 0 0 10px;
+}
+.modal .btn {
+  margin-top: 12px;
+}
+
+.info {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+.info .info-page {
+  text-align: left;
+  min-height: 12em;
+}
+.icon-btn.arrow {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--navy);
+  color: var(--on-navy);
+  font-size: 1.4rem;
+  line-height: 1;
+}
+.shortcuts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.shortcuts li {
+  padding-left: 30px;
+  position: relative;
+}
+.shortcuts .ico svg {
+  position: absolute;
+  left: 0;
+  top: 2px;
+  width: 20px;
+  height: 20px;
+  --game-bg: var(--surface);
+}
+
+.result {
+  position: relative;
+  text-align: center;
+}
+.result .close {
+  position: absolute;
+  top: -12px;
+  right: -8px;
+  border: 0;
+  background: transparent;
+  color: var(--navy);
+  font-size: 1.8rem;
+  line-height: 1;
+}
+.result h2 {
+  letter-spacing: 0.06em;
+}
+.result .time {
+  font-size: 1.15rem;
+}
+.result .level {
+  margin: 0;
+  font-weight: 700;
+  font-size: 1.2rem;
+}
+.result ol {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  font-variant-numeric: tabular-nums;
+}
+.confetti {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.page.notice {
+  padding-bottom: 0;
 }

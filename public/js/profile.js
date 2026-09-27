@@ -5,7 +5,6 @@ import { h, normalizeUsername } from './dom.js';
 import { api, mirrorProfile, mirroredProfile, queueGame, flushQueue, local } from './api.js';
 import { BoardView } from './board-view.js';
 import { renderImport, renderStats, renderSettings } from './pages.js';
-import { siteFoot } from './landing.js';
 import { validatePuzzle, grade, puzzleId, DIFFICULTIES } from './engine.js';
 import { solvedPuzzles } from './stats.js';
 
@@ -54,7 +53,7 @@ export async function renderProfile(app, rawName) {
     return;
   }
   document.title = `Sudoku – ${name}`;
-  app.replaceChildren(h('div', { class: 'site' }, h('p', { class: 'empty-note' }, 'Henter profilen …')));
+  app.replaceChildren(h('main', { class: 'page' }, h('p', { class: 'muted' }, 'Henter profilen …')));
 
   let profile;
   let offline = false;
@@ -112,6 +111,13 @@ export async function renderProfile(app, rawName) {
       // offline: the local mirror has it
     }
   };
+
+  /** Solve times on a level, fastest first (the result modal shows 4). */
+  ctx.bestTimes = (level) =>
+    profile.games
+      .filter((g) => g.status === 'solved' && g.difficulty === level)
+      .map((g) => g.seconds)
+      .sort((a, b) => a - b);
 
   ctx.recordGame = async (game) => {
     const { puzzle, solution, status, seconds, mistakes, hints, difficulty, source, puzzleId: id, startedAt } = game;
@@ -234,20 +240,21 @@ export async function renderProfile(app, rawName) {
       onSave: (snap) => ctx.saveCurrent(snap),
       onFinish: (game) => ctx.recordGame(game),
       onLevel: (level) => newGame(level),
+      bestTimes: (level) => ctx.bestTimes(level),
     });
 
-    const wrap = h('div', { class: 'game-page' }, board.root);
+    const wrap = h('main', { class: 'game-page' }, board.root);
     main.replaceChildren(wrap);
 
     if (pendingStart) {
       const entry = pendingStart;
       pendingStart = null;
       if (profile.current && profile.current.puzzle !== entry.puzzle) {
-        board.load(profile.current);
+        board.load(profile.current, { resume: true });
         if (!(await leaveCurrent())) return;
       }
       start(entry);
-    } else if (profile.current) board.load(profile.current);
+    } else if (profile.current) board.load(profile.current, { resume: true });
     else await newGame('easy');
   };
 
@@ -265,16 +272,15 @@ export async function renderProfile(app, rawName) {
   // ---------------------------------------------------------------------------
   // Shell
 
-  const nav = h('nav', { class: 'site-nav', 'aria-label': 'Sider' });
-  const main = h('main');
-  const foot = siteFoot();
+  const nav = h('nav', { class: 'seg', 'aria-label': 'Sider' });
+  const main = h('div');
   const head = h(
     'header',
-    { class: 'site-head' },
-    h('h1', {}, h('a', { href: '/', title: 'Til forsiden' }, 'Sudoku'), ` · ${name}`),
+    { class: 'app-head' },
+    h('h1', { class: 'title' }, h('a', { href: '/', title: 'Til forsiden' }, 'Sudoku'), h('span', { class: 'who' }, ` · ${name}`)),
     nav,
   );
-  app.replaceChildren(h('div', { class: 'site' }, head), main, h('div', { class: 'site' }, foot));
+  app.replaceChildren(head, main);
 
   function show() {
     const page = PAGES.some(([k]) => `#${k}` === location.hash) ? location.hash.slice(1) : 'spill';
@@ -286,11 +292,10 @@ export async function renderProfile(app, rawName) {
       board.destroy();
       board = null;
     }
-    foot.hidden = page === 'spill';
     const notice = [];
-    if (ctx.offline) notice.push(h('p', { class: 'flash-msg error' }, 'Får ikke kontakt med serveren. Du ser den lokale kopien, og endringer sendes når forbindelsen er tilbake.'));
+    if (ctx.offline) notice.push(h('p', { class: 'msg error' }, 'Får ikke kontakt med serveren. Du ser den lokale kopien, og endringer sendes når forbindelsen er tilbake.'));
     if (ctx.message) {
-      notice.push(h('p', { class: 'flash-msg error' }, ctx.message));
+      notice.push(h('p', { class: 'msg error' }, ctx.message));
       ctx.message = '';
     }
     if (page === 'spill') {
@@ -300,11 +305,11 @@ export async function renderProfile(app, rawName) {
         pendingStart = null;
         leaveCurrent().then((ok) => ok && start(entry));
       }
-      if (notice.length) main.prepend(h('div', { class: 'site' }, notice));
+      if (notice.length) main.prepend(h('div', { class: 'page notice' }, notice));
       return;
     }
     const content = page === 'importer' ? renderImport(ctx) : page === 'statistikk' ? renderStats(ctx) : renderSettings(ctx);
-    main.replaceChildren(h('div', { class: 'site' }, notice, content));
+    main.replaceChildren(h('main', { class: 'page' }, notice, content));
   }
 
   window.addEventListener('hashchange', show);

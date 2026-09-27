@@ -2,17 +2,18 @@
 
 Sudoku uten konto. Du velger et brukernavn, og `sudoku.eipi.dev/<brukernavn>` blir spillprofilen din. Det finnes ingen passord: skriver noen inn et brukernavn som er i bruk, havner de på den profilen. Da kan de spille videre der (overta den) eller velge et annet navn.
 
-## Status og visuelle kilder
+## Kilder
 
 | Del | Kilde |
 | --- | --- |
-| Spillet (brett, tallrad, kontrollrad) | Skjermbilder av Adressas sudoku |
-| Forsiden (brukernavn, statistikk, topp 10) | Skjermbilde av ntnu.1024.no |
-| Importer, Statistikk, Innstillinger, mørk modus | Ingen kilde. Bruker forsidens visuelle språk |
+| Spillets oppførsel | Adressas `sudoku.js` (static.polarismedia.no/hjernetrim/sudoku/prod/sudoku.js), lest som referanse. Ingen kode er kopiert, og filen ligger ikke i repoet. |
+| Spillets utseende | Skjermbilder av Adressas sudoku. CSS-en deres finnes ikke i `sudoku.js`, så fargene er målt fra skjermbildene. |
+| Registrering | Mekanismen fra ntnu.1024.no: skriv et brukernavn og gå rett til profilen. Ikke fargene eller oppsettet. |
+| Forsiden, Importer, Statistikk, Innstillinger, mørk modus | Ingen kilde. Bruker spillets farger og kontroller. |
 
-Fra skjermbildene: sjakkmønster på rutene, fete gitte tall og tynne egne tall, valgt rute mørkeblå, like tall blågrå, notater i 3×3, og tallknapper som er lyse når valgt rute allerede har et tall.
+Fra `sudoku.js`: angre og «fjern alt» (kan angres), samme tall to ganger tømmer ruten, et tall fjernes fra notatene i samme rad, kolonne og boks, notater ligger under et tall og kommer tilbake når det slettes, et notat tømmer tallet i ruten, tallknapper merkes når tallet står 9 ganger, Shift bytter mellom tall og notater, piltaster og WASD flytter (venstre/høyre rundt i raden, opp/ned rundt i kolonnen), pause med «Sudoku / PAUSE / Fortsett» som også slår inn når vinduet mister fokus eller fanen skjules, «Noe er feil i løsningen din» når et fullt brett er feil, og konfetti i 5 sekunder med «GRATULERER», tiden og de 4 beste tidene på nivået. Et klikk på et nivå starter alltid et nytt brett. Hjelpen har to sider og viser «Start» første gang.
 
-Venter på skjermbilder: hvordan blyant-modus markeres som aktiv, hvordan feil vises, hvordan pause ser ut, og hva som skjer når brettet er løst. Linjen under tallknappene er en midlertidig erstatning.
+Ikke i `sudoku.js`, lagt til her: nivået «Veldig lett», Ctrl+Z / Ctrl+Y (gjør om), Delete, Backspace på en tom rute sletter notatene, ingen inntasting under pause, spørsmål før du forlater et påbegynt brett (det lagres som ikke fullført i statistikken), innstillinger for markering av like tall, tidtaker og automatisk fjerning av notater, og mørk modus. Tekstene i hjelpen er skrevet på nytt. Utseendet på pause, hjelp, resultat og fulle tallknapper er mitt eget, fordi CSS-en mangler.
 
 ## Kjør
 

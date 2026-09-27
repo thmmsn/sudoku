@@ -1,3 +1,7 @@
 node_modules/
 data/
 *.tmp
+
+# Adressa's sudoku.js is a reference only and must never be committed.
+/sudoku.js
+/reference/

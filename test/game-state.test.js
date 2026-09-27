@@ -42,16 +42,45 @@ test('placing the same digit again clears the cell', () => {
   assert.equal(g.values[firstEmpty], 0);
 });
 
-test('notes toggle and are blocked while a digit is present', () => {
+test('notes toggle, stay under a digit and come back when it is cleared', () => {
   const g = fresh();
-  g.toggleNote(firstEmpty, 3);
-  g.toggleNote(firstEmpty, 7);
-  assert.equal(g.notes[firstEmpty], (1 << 2) | (1 << 6));
-  g.toggleNote(firstEmpty, 3);
-  assert.equal(g.notes[firstEmpty], 1 << 6);
-  g.setValue(firstEmpty, digit(firstEmpty));
+  const d = digit(firstEmpty);
+  const other = (d % 9) + 1;
+  g.toggleNote(firstEmpty, d);
+  g.toggleNote(firstEmpty, other);
+  assert.equal(g.notes[firstEmpty], (1 << (d - 1)) | (1 << (other - 1)));
+  g.toggleNote(firstEmpty, other);
+  assert.equal(g.notes[firstEmpty], 1 << (d - 1));
+  g.toggleNote(firstEmpty, other);
+
+  // Placing d removes d from the cell's own notes, the rest stays underneath.
+  g.setValue(firstEmpty, d);
+  assert.equal(g.notes[firstEmpty], 1 << (other - 1));
+  g.erase(firstEmpty);
+  assert.equal(g.values[firstEmpty], 0);
+  assert.equal(g.notes[firstEmpty], 1 << (other - 1));
+
+  // Erasing an empty cell clears its notes.
+  g.erase(firstEmpty);
   assert.equal(g.notes[firstEmpty], 0);
-  assert.equal(g.toggleNote(firstEmpty, 2).changed, false);
+});
+
+test('a note clears the digit in the cell', () => {
+  const g = fresh();
+  g.setValue(firstEmpty, digit(firstEmpty));
+  assert.equal(g.toggleNote(firstEmpty, 2).changed, true);
+  assert.equal(g.values[firstEmpty], 0);
+  assert.equal(g.notes[firstEmpty], 1 << 1);
+});
+
+test('isFull is true for a full board even if it is wrong', () => {
+  const g = fresh();
+  for (let i = 0; i < 81; i++) if (P[i] === '.') g.setValue(i, digit(i));
+  assert.equal(g.isComplete(), true);
+  const last = P.lastIndexOf('.');
+  g.setValue(last, wrongDigit(last));
+  assert.equal(g.isFull(), true);
+  assert.equal(g.isComplete(), false);
 });
 
 test('auto-remove notes clears the digit from peers, in one undo step', () => {
