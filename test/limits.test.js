@@ -56,6 +56,14 @@ test('new profiles and imports are limited per address', async () => {
   assert.equal(await call('POST', '/api/users/en/puzzles', { text: P }), 429);
 });
 
+test('writes racing to create one profile count as one new profile', async () => {
+  const call = await server({ RATE_NEW_PROFILES: '1' });
+  const game = { puzzle: P, solution: S, status: 'solved', seconds: 100, difficulty: 'easy', source: 'library' };
+  const statuses = await Promise.all([...Array(10)].map(() => call('POST', '/api/users/samtidig/games', game)));
+  assert.deepEqual([...new Set(statuses)], [200]);
+  assert.equal(await call('PUT', '/api/users/annen/settings', {}), 429, 'the next new name is over the limit');
+});
+
 test('a full disk budget refuses new profiles but not existing ones', async () => {
   const call = await server({ DATA_MAX_BYTES: '400' });
   assert.equal(await call('PUT', '/api/users/forst/settings', {}), 200); // ~200 bytes

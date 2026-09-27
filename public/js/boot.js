@@ -6,6 +6,13 @@
     var root = document.documentElement;
     if (look && /^[a-z]+$/.test(look.palette)) root.setAttribute('data-palette', look.palette);
     if (look && look.brightness >= 0.2 && look.brightness <= 1) root.style.setProperty('--brightness', look.brightness);
+    if (look && (look.style === 'flat' || look.style === 'glow')) root.setAttribute('data-style', look.style);
+    // Sizes, lines and colours from the appearance page (look.js).
+    if (look && look.vars) {
+      for (var k in look.vars) {
+        if (/^--[a-z-]+$/.test(k) && /^[#\w.%-]{1,24}$/.test(String(look.vars[k]))) root.style.setProperty(k, look.vars[k]);
+      }
+    }
   } catch (e) {}
 })();
 

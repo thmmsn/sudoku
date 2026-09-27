@@ -10,6 +10,8 @@ services:
     ports:
       - "${SUDOKU_BIND:-0.0.0.0}:${SUDOKU_PORT:-3000}:3000"
     environment:
+      # The site's public address, used in link previews (og:image).
+      PUBLIC_URL: ${PUBLIC_URL:-https://sudoku.eipi.dev}
       # Total size of all profiles. New profiles and imports are refused above it.
       DATA_MAX_BYTES: ${DATA_MAX_BYTES:-1073741824}
       # Per IP address per hour.

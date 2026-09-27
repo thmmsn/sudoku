@@ -1,18 +1,35 @@
 <!doctype html>
-<html lang="nb" data-palette="natt">
+<html lang="nb" data-palette="natt" data-style="glow">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
     <title>Sudoku</title>
-    <meta name="description" content="Sudoku uten konto, laget for mobil i et mørkt rom." />
+    <meta name="description" content="Sudoku for mørke rom. Uten konto, virker uten nett." />
     <meta name="color-scheme" content="dark light" />
     <meta name="theme-color" content="#000000" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black" />
     <meta name="mobile-web-app-capable" content="yes" />
+    <link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="apple-mobile-web-app-title" content="Sudoku" />
+    <meta name="application-name" content="Sudoku" />
+
+    <!-- Link previews. %PUBLIC_URL% is filled in by the server (PUBLIC_URL). -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Sudoku" />
+    <meta property="og:title" content="Sudoku" />
+    <meta property="og:description" content="Sudoku for mørke rom. Uten konto, virker uten nett." />
+    <meta property="og:url" content="%PUBLIC_URL%/" />
+    <meta property="og:image" content="%PUBLIC_URL%/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Et svart sudokubrett med en glødende 9" />
+    <meta property="og:locale" content="nb_NO" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="%PUBLIC_URL%/og-image.png" />
     <link rel="stylesheet" href="/css/style.css" />
     <script src="/js/boot.js"></script>
     <script type="module" src="/js/main.js"></script>

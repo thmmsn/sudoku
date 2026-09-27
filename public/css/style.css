@@ -15,21 +15,17 @@
   --surface: #0a0a0a;
   --line: #161616; /* thin cell lines */
   --box: #333; /* box lines, just as thin, a little brighter */
-  --given: #7c7c7c;
-  --user: #5f7d9c;
+  --given: #a6a6a6; /* bold and light grey */
+  --user: #5e9ae6; /* thin and clearly blue */
   --note: #4d4d4d;
   --sel: #151515; /* selected cell */
-  --hi: #b0b0b0; /* digits equal to the selected one */
+  --hi: #f2f2f2; /* digits equal to the selected one */
   --err: #a8453c;
   --ui: #555;
   --ui-on: #9a9a9a;
   --text: #7a7a7a;
   --dim: #444;
   --accent: #8fb3e0;
-  --d-hi: #b4b4b4; /* given digits, top and bottom of the gradient */
-  --d-lo: #5e5e5e;
-  --u-hi: #9bb6d8; /* your digits */
-  --u-lo: #45607f;
   --frame-hi: rgb(255 255 255 / 0.22); /* board frame and glass edges */
   --frame-lo: rgb(255 255 255 / 0.04);
 }
@@ -41,21 +37,17 @@
   --surface: #070000;
   --line: #1c0404;
   --box: #420c0c;
-  --given: #8e2a22;
-  --user: #c4412f;
+  --given: #d24a36;
+  --user: #93301f;
   --note: #5a1810;
   --sel: #1c0505;
-  --hi: #ff6a50;
+  --hi: #ff8a6a;
   --err: #8a6a20;
   --ui: #6a1c14;
   --ui-on: #c4412f;
   --text: #8e2a22;
   --dim: #4a120c;
   --accent: #e0513a;
-  --d-hi: #b8392c; /* given digits, top and bottom of the gradient */
-  --d-lo: #5e1710;
-  --u-hi: #f0654c; /* your digits */
-  --u-lo: #8a2a1d;
   --frame-hi: rgb(255 90 60 / 0.28); /* board frame and glass edges */
   --frame-lo: rgb(255 60 40 / 0.05);
 }
@@ -66,21 +58,17 @@
   --surface: #080600;
   --line: #1a1305;
   --box: #3d2c0c;
-  --given: #8c6a2c;
-  --user: #c79440;
+  --given: #d6a352;
+  --user: #93702f;
   --note: #54401a;
   --sel: #171005;
-  --hi: #f0c060;
+  --hi: #ffd88a;
   --err: #b04a3a;
   --ui: #5e4718;
   --ui-on: #c79440;
   --text: #8c6a2c;
   --dim: #4a3812;
   --accent: #e0a84e;
-  --d-hi: #b58a45; /* given digits, top and bottom of the gradient */
-  --d-lo: #5a4219;
-  --u-hi: #f0bb60; /* your digits */
-  --u-lo: #8f6322;
   --frame-hi: rgb(255 190 90 / 0.24); /* board frame and glass edges */
   --frame-lo: rgb(255 170 60 / 0.05);
 }
@@ -91,21 +79,17 @@
   --surface: #02050a;
   --line: #0c1420;
   --box: #1f3350;
-  --given: #6a7f99;
-  --user: #5b95d6;
+  --given: #aebfd6;
+  --user: #3f8cf0;
   --note: #34485f;
   --sel: #0c1624;
-  --hi: #a8d0ff;
+  --hi: #dcecff;
   --err: #b04a3a;
   --ui: #3a5270;
   --ui-on: #7fb0e6;
   --text: #6a7f99;
   --dim: #2c3c52;
   --accent: #6aa8ff;
-  --d-hi: #9fb3cc; /* given digits, top and bottom of the gradient */
-  --d-lo: #4a5d75;
-  --u-hi: #8fc2ff; /* your digits */
-  --u-lo: #3b6fb0;
   --frame-hi: rgb(140 190 255 / 0.26); /* board frame and glass edges */
   --frame-lo: rgb(90 150 255 / 0.05);
 }
@@ -117,8 +101,8 @@
   --surface: #fff;
   --line: #d6d6d6;
   --box: #8a8a8a;
-  --given: #1a1a1a;
-  --user: #2d5f93;
+  --given: #111111;
+  --user: #1f64c4;
   --note: #7a7a7a;
   --sel: #dcdcdc;
   --hi: #000;
@@ -128,10 +112,6 @@
   --text: #333;
   --dim: #999;
   --accent: #2d6fd0;
-  --d-hi: #3a3a3a; /* given digits, top and bottom of the gradient */
-  --d-lo: #000000;
-  --u-hi: #3b78c0; /* your digits */
-  --u-lo: #1d4c80;
   --frame-hi: rgb(0 0 0 / 0.22); /* board frame and glass edges */
   --frame-lo: rgb(0 0 0 / 0.06);
 }
@@ -141,9 +121,16 @@
 :root,
 [data-palette] {
   --accent-soft: color-mix(in srgb, var(--accent) 13%, transparent);
-  --accent-faint: color-mix(in srgb, var(--accent) 7%, transparent);
+  --accent-faint: color-mix(in srgb, var(--accent) calc(var(--glow, 50) * 0.14%), transparent);
   --accent-ring: color-mix(in srgb, var(--accent) 55%, transparent);
-  --accent-glow: color-mix(in srgb, var(--accent) 40%, transparent);
+  --accent-glow: color-mix(in srgb, var(--accent) calc(var(--glow, 50) * 0.8%), transparent);
+  /* Appearance settings (look.js), with their defaults as fallbacks. */
+  --wash-bg: color-mix(in srgb, var(--accent) calc(var(--wash, 26) * 1%), transparent);
+  --sel-bg: color-mix(in srgb, var(--accent) calc(var(--sel-wash, 30) * 1%), transparent);
+  --d-hi: color-mix(in srgb, var(--given), white calc(var(--sheen, 25) * 0.45%));
+  --d-lo: color-mix(in srgb, var(--given), black calc(var(--sheen, 25) * 0.6%));
+  --u-hi: color-mix(in srgb, var(--user), white calc(var(--sheen, 25) * 0.45%));
+  --u-lo: color-mix(in srgb, var(--user), black calc(var(--sheen, 25) * 0.6%));
 }
 
 *,
@@ -260,11 +247,16 @@ svg {
   grid-template-columns: repeat(9, 1fr);
   grid-template-rows: repeat(9, 1fr);
   /* Gradient hairline frame: lighter at the top, like light catching an edge. */
-  border: 1px solid transparent;
-  border-radius: 12px;
+  border: var(--frame-w, 1px) solid transparent;
+  border-radius: var(--radius, 12px);
   overflow: hidden;
+  /* The cell lines are the gaps between the cells, showing the board's
+     own colour through; the box lines are drawn on top (::after). So lines
+     of any width meet cleanly. */
+  gap: var(--line-w, 1px);
+  position: relative;
   background:
-    linear-gradient(var(--bg), var(--bg)) padding-box,
+    linear-gradient(var(--line), var(--line)) padding-box,
     linear-gradient(180deg, var(--frame-hi), var(--frame-lo) 55%, var(--accent-soft)) border-box;
   box-shadow: 0 24px 80px -40px var(--accent-glow);
   container-type: inline-size;
@@ -275,25 +267,28 @@ svg {
   place-items: center;
   min-width: 0;
   min-height: 0;
-  border-right: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
+  background-color: var(--bg);
   color: var(--user);
-  font-size: 6.4cqi;
+  font-size: calc(100cqi / 9 * var(--digit-scale, 0.62));
   font-weight: 300;
   line-height: 1;
   font-variant-numeric: tabular-nums;
 }
-.cell.box-right {
-  border-right-color: var(--box);
-}
-.cell.box-bottom {
-  border-bottom-color: var(--box);
-}
-.cell.last-col {
-  border-right: 0;
-}
-.cell.last-row {
-  border-bottom: 0;
+.board::after {
+  --b: var(--box-w, 1.5px);
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg,
+      transparent calc(100% / 3 - var(--b) / 2), var(--box) 0 calc(100% / 3 + var(--b) / 2),
+      transparent 0 calc(200% / 3 - var(--b) / 2), var(--box) 0 calc(200% / 3 + var(--b) / 2),
+      transparent 0),
+    linear-gradient(180deg,
+      transparent calc(100% / 3 - var(--b) / 2), var(--box) 0 calc(100% / 3 + var(--b) / 2),
+      transparent 0 calc(200% / 3 - var(--b) / 2), var(--box) 0 calc(200% / 3 + var(--b) / 2),
+      transparent 0);
 }
 /* Digits: a soft vertical gradient instead of a flat colour. */
 .cell .d {
@@ -301,23 +296,29 @@ svg {
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  font-weight: var(--user-w, 300);
   padding: 0 0.04em; /* keeps the clip from shaving the edges */
 }
-.cell.given {
-  font-weight: 400;
+.cell.given .d {
+  font-weight: var(--given-w, 600);
 }
 .cell.given .d {
   background-image: linear-gradient(180deg, var(--d-hi), var(--d-lo));
 }
 .cell.selected {
-  background: var(--accent-soft);
-  box-shadow: inset 0 0 0 1px var(--accent-ring);
+  background-image: linear-gradient(var(--sel-bg), var(--sel-bg));
+  box-shadow: inset 0 0 0 1.5px var(--accent-ring);
 }
 /* Same digit as the selected cell (or the digit picked on the pad): a faint
    accent wash behind it and a glowing digit. Clear enough on a dimmed
    screen, but not a bright block. */
 .cell.same {
-  background: var(--accent-faint);
+  background-image: linear-gradient(var(--wash-bg), var(--wash-bg));
+}
+/* While a digit is marked, every other digit and note steps back. */
+.board.marking .cell:not(.same):not(.selected) .d,
+.board.marking .notes span:not(.hit) {
+  opacity: calc(1 - var(--dim-others, 45) / 100);
 }
 .cell.same .d {
   background-image: linear-gradient(180deg, var(--hi), var(--accent));
@@ -327,7 +328,7 @@ svg {
   background-image: linear-gradient(180deg, var(--err), color-mix(in srgb, var(--err) 55%, black));
 }
 .cell.hinted {
-  background: var(--accent-soft);
+  background-image: linear-gradient(var(--accent-soft), var(--accent-soft));
   transition: background 0.3s;
 }
 /* Solved: one glint sweeps across the digits. */
@@ -363,7 +364,8 @@ svg {
   display: grid;
   place-items: center;
   color: var(--note);
-  font-size: 2.5cqi;
+  font-size: calc(100cqi / 9 * var(--note-scale, 0.25));
+  font-weight: var(--note-w, 400);
 }
 .notes span.hit {
   color: var(--accent);
@@ -388,8 +390,8 @@ svg {
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  font-size: min(7.4vw, 30px);
-  font-weight: 300;
+  font-size: min(calc(var(--w) / 9 * 0.85), var(--pad-size, 30px));
+  font-weight: var(--user-w, 300);
   transition: filter 0.15s;
 }
 .pad .key:active,
@@ -399,7 +401,7 @@ svg {
 }
 .pad.notes-mode .key {
   background-image: linear-gradient(180deg, var(--u-hi), var(--u-lo));
-  font-size: min(5vw, 20px);
+  font-size: min(calc(var(--w) / 9 * 0.6), calc(var(--pad-size, 30px) * 0.66));
 }
 .pad .key.done {
   opacity: 0.15;
@@ -924,4 +926,194 @@ td.dim {
   .tools {
     width: min(40vw, 240px);
   }
+}
+
+/* ==========================================================================
+   Appearance page (#utseende)
+   ========================================================================== */
+
+/* The preview stays in view while the sliders below it scroll. */
+.look-preview {
+  --w: min(100vw - 32px, 300px, 36dvh);
+  position: sticky;
+  top: calc(-1 * max(8px, env(safe-area-inset-top)));
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0 -16px;
+  padding: 8px 16px 10px;
+  background: linear-gradient(var(--bg) 85%, transparent);
+}
+.look-preview .pad {
+  margin-top: 6px;
+}
+.look-preview .pad .key {
+  display: grid;
+  place-items: center;
+  height: 36px;
+}
+.look-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.look-num {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  padding: 6px 0 2px;
+}
+.look-num input {
+  grid-column: 1 / -1;
+  width: 100%;
+}
+.look-num output {
+  color: var(--hi);
+  font-variant-numeric: tabular-nums;
+}
+.look-color {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  border-bottom: 1px solid var(--line);
+}
+input[type='color'] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid var(--frame-hi);
+  border-radius: 50%;
+  background: none;
+  box-shadow: 0 0 14px -4px var(--accent-glow);
+}
+input[type='color']::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+input[type='color']::-webkit-color-swatch {
+  border: 0;
+  border-radius: 50%;
+}
+input[type='color']::-moz-color-swatch {
+  border: 0;
+  border-radius: 50%;
+}
+
+/* ==========================================================================
+   Traditional style (appearance page: "glød og glans" off)
+
+   Flat colours, no gradients, glow, glass or rounded corners. Sizes, line
+   widths and colours from the appearance page still apply.
+   ========================================================================== */
+
+:root[data-style='flat'] .board-area,
+:root[data-style='flat'] .landing {
+  background: none;
+}
+:root[data-style='flat'] .board {
+  border-radius: 0;
+  border-color: var(--box);
+  background: var(--line);
+  box-shadow: none;
+}
+:root[data-style='flat'] .cell .d,
+:root[data-style='flat'] .pad .key,
+:root[data-style='flat'] .page h1,
+:root[data-style='flat'] .figures dd {
+  background: none;
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
+  filter: none;
+  animation: none;
+}
+:root[data-style='flat'] .cell .d {
+  color: var(--user);
+}
+:root[data-style='flat'] .cell.given .d {
+  color: var(--given);
+}
+:root[data-style='flat'] .cell.same .d,
+:root[data-style='flat'] .board.solved .cell .d {
+  color: var(--hi);
+}
+:root[data-style='flat'] .cell.wrong .d {
+  color: var(--err);
+}
+:root[data-style='flat'] .notes span.hit {
+  text-shadow: none;
+}
+:root[data-style='flat'] .pad .key {
+  color: var(--given);
+}
+:root[data-style='flat'] .pad.notes-mode .key {
+  color: var(--user);
+}
+:root[data-style='flat'] .pad .key:active,
+:root[data-style='flat'] .pad .key.focus {
+  color: var(--accent);
+}
+:root[data-style='flat'] .page h1 {
+  color: var(--ui-on);
+}
+:root[data-style='flat'] .figures dd {
+  color: var(--ui-on);
+}
+:root[data-style='flat'] .tool[aria-pressed='true'] {
+  filter: none;
+}
+:root[data-style='flat'] .sheet {
+  background: var(--surface);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  border-radius: 0;
+  border-top: 1px solid var(--box);
+  box-shadow: none;
+}
+:root[data-style='flat'] .sheet .levels,
+:root[data-style='flat'] .sheet .levels button {
+  border-radius: 0;
+}
+:root[data-style='flat'] .sheet .levels button[aria-pressed='true'] {
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+:root[data-style='flat'] .swatch {
+  background: var(--bg);
+  border-color: var(--box);
+}
+:root[data-style='flat'] .switch .track,
+:root[data-style='flat'] .switch input:checked + .track {
+  box-shadow: inset 0 0 0 1px var(--box);
+}
+:root[data-style='flat'] .switch input:checked + .track {
+  background: var(--accent);
+}
+:root[data-style='flat'] input[type='range']::-webkit-slider-runnable-track {
+  background: var(--box);
+}
+:root[data-style='flat'] input[type='range']::-moz-range-track {
+  background: var(--box);
+}
+:root[data-style='flat'] input[type='range']::-webkit-slider-thumb {
+  background: var(--ui-on);
+  box-shadow: none;
+}
+:root[data-style='flat'] input[type='range']::-moz-range-thumb {
+  background: var(--ui-on);
+  box-shadow: none;
+}
+:root[data-style='flat'] .btn {
+  border-radius: 4px;
+  border-color: var(--box);
+  background: none;
+  box-shadow: none;
+}
+:root[data-style='flat'] input[type='color'] {
+  box-shadow: none;
+}
+:root[data-style='flat'] .landing form {
+  background: linear-gradient(var(--box), var(--box)) bottom / 100% 1px no-repeat;
 }

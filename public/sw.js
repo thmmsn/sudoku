@@ -9,7 +9,7 @@
 // copy of the profile and the game in progress in localStorage, and queues
 // finished games until the server can be reached.
 
-const CACHE = 'sudoku-v1';
+const CACHE = 'sudoku-v3';
 
 // Keep in sync with public/ (test/pwa.test.js checks it).
 const PRECACHE = [
@@ -22,6 +22,7 @@ const PRECACHE = [
   '/js/board-view.js',
   '/js/entry.js',
   '/js/pages.js',
+  '/js/look.js',
   '/js/engine.js',
   '/js/game-state.js',
   '/js/stats.js',
@@ -29,8 +30,12 @@ const PRECACHE = [
   '/js/dom.js',
   '/js/generator-worker.js',
   '/favicon.svg',
+  '/favicon.ico',
   '/manifest.webmanifest',
+  '/icons/icon.svg',
   '/icons/apple-touch-icon.png',
+  '/icons/favicon-16.png',
+  '/icons/favicon-32.png',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
   '/icons/maskable-512.png',

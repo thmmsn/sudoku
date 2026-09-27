@@ -26,10 +26,34 @@ test('every script, style and icon is precached', () => {
   assert.ok(list.includes('/api/library'), 'the puzzle library is needed offline');
 });
 
-test('manifest: standalone, portrait, black, with icons that exist', () => {
+/** Width and height from a PNG header. */
+function pngSize(file) {
+  const b = fs.readFileSync(file);
+  assert.equal(b.toString('ascii', 1, 4), 'PNG', file);
+  return `${b.readUInt32BE(16)}x${b.readUInt32BE(20)}`;
+}
+
+test('manifest: standalone, portrait, black; icons and screenshots exist with the stated sizes', () => {
   const m = JSON.parse(fs.readFileSync(path.join(pub, 'manifest.webmanifest'), 'utf8'));
   assert.equal(m.display, 'standalone');
   assert.equal(m.orientation, 'portrait');
   assert.equal(m.background_color, '#000000');
-  for (const i of m.icons) assert.ok(fs.existsSync(path.join(pub, i.src)), i.src);
+  assert.ok(m.icons.some((i) => i.purpose === 'maskable'), 'a maskable icon');
+  for (const i of m.icons) {
+    assert.ok(fs.existsSync(path.join(pub, i.src)), i.src);
+    if (i.type === 'image/png') assert.equal(pngSize(path.join(pub, i.src)), i.sizes, i.src);
+  }
+  assert.ok(m.screenshots.length >= 1);
+  for (const sc of m.screenshots) assert.equal(pngSize(path.join(pub, sc.src)), sc.sizes, sc.src);
+});
+
+test('icons: apple-touch 180, favicons, .ico and the share image', () => {
+  assert.equal(pngSize(path.join(pub, 'icons', 'apple-touch-icon.png')), '180x180');
+  assert.equal(pngSize(path.join(pub, 'icons', 'favicon-32.png')), '32x32');
+  assert.equal(pngSize(path.join(pub, 'og-image.png')), '1200x630');
+  const ico = fs.readFileSync(path.join(pub, 'favicon.ico'));
+  assert.deepEqual([ico.readUInt16LE(0), ico.readUInt16LE(2)], [0, 1], 'ico header');
+  assert.ok(ico.readUInt16LE(4) >= 2, 'several sizes in the .ico');
+  const html = fs.readFileSync(path.join(pub, 'index.html'), 'utf8');
+  for (const tag of ['og:image', 'og:title', 'twitter:card', 'apple-touch-icon', 'manifest', 'favicon.ico']) assert.ok(html.includes(tag), tag);
 });

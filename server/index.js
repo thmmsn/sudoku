@@ -30,6 +30,8 @@ const DATA_DIR = path.resolve(process.env.DATA_DIR || path.join(ROOT, 'data'));
 const PUZZLE_DIR = path.resolve(process.env.PUZZLE_DIR || path.join(ROOT, 'puzzles'));
 const PUBLIC_DIR = path.join(ROOT, 'public');
 const MAX_BODY = 2 * 1024 * 1024;
+// Absolute address of the site, used in link previews (og:image must be absolute).
+const PUBLIC_URL = (process.env.PUBLIC_URL || 'https://sudoku.eipi.dev').replace(/\/+$/, '');
 
 // Flood protection. No accounts, so the limits are per IP address and for the
 // data folder as a whole. Behind a reverse proxy, set TRUST_PROXY=1 so the
@@ -212,6 +214,7 @@ class RateLimit {
 }
 
 const newProfileLimit = new RateLimit(RATE_NEW_PROFILES);
+const creating = new Set(); // names counted as new profiles, until they exist
 const importLimit = new RateLimit(RATE_IMPORTS);
 
 function clientIp(req) {
@@ -263,10 +266,14 @@ async function api(req, res, parts) {
   if (resource !== 'users') throw new HttpError(404, 'Ukjent API-rute.');
   if (!name) throw new HttpError(400, 'Ugyldig brukernavn. Bruk 2-30 tegn: a-z, 0-9, æøå, - og _.');
 
-  // Any write to a name that does not exist yet creates the profile.
-  if ((req.method === 'PUT' || req.method === 'POST') && !store.get(name)) {
+  // Any write to a name that does not exist yet creates the profile. A name
+  // counts once: several writes racing to create the same profile (a queue
+  // of games sent after being offline) are one new profile, not many.
+  if ((req.method === 'PUT' || req.method === 'POST') && !store.get(name) && !creating.has(name)) {
     checkBudget();
     if (!newProfileLimit.take(clientIp(req))) throw new HttpError(429, 'For mange nye profiler fra denne adressen. Prøv igjen om en time.');
+    if (creating.size > 10000) creating.clear();
+    creating.add(name);
   }
 
   if (!sub) {
@@ -383,6 +390,7 @@ const TYPES = {
   '.css': 'text/css; charset=utf-8',
   '.svg': 'image/svg+xml',
   '.png': 'image/png',
+  '.ico': 'image/x-icon',
   '.json': 'application/json; charset=utf-8',
   '.webmanifest': 'application/manifest+json',
   '.txt': 'text/plain; charset=utf-8',
@@ -394,6 +402,20 @@ const SECURITY_HEADERS = {
   'Content-Security-Policy':
     "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'",
 };
+
+// The app shell, with %PUBLIC_URL% filled in, kept in memory.
+const indexHtml = fs.readFileSync(path.join(PUBLIC_DIR, 'index.html'), 'utf8').replaceAll('%PUBLIC_URL%', PUBLIC_URL);
+const indexEtag = `"${crypto.createHash('sha1').update(indexHtml).digest('hex').slice(0, 16)}"`;
+
+function serveIndex(req, res) {
+  const headers = { 'Content-Type': TYPES['.html'], 'Cache-Control': 'no-cache', ETag: indexEtag, ...SECURITY_HEADERS };
+  if (req.headers['if-none-match'] === indexEtag) {
+    res.writeHead(304, headers);
+    return res.end();
+  }
+  res.writeHead(200, headers);
+  res.end(req.method === 'HEAD' ? undefined : indexHtml);
+}
 
 function serveFile(req, res, file, status = 200) {
   fs.stat(file, (err, stat) => {
@@ -423,7 +445,7 @@ const server = http.createServer(async (req, res) => {
     if (req.method !== 'GET' && req.method !== 'HEAD') throw new HttpError(405, 'Metoden støttes ikke.');
 
     // "/" and "/<username>" both load the app shell; the client decides what to show.
-    if (segments.length === 0) return serveFile(req, res, path.join(PUBLIC_DIR, 'index.html'));
+    if (segments.length === 0 || url.pathname === '/index.html') return serveIndex(req, res);
     if (segments.length === 1 && !segments[0].includes('.')) {
       const name = normalizeUsername(decodeURIComponent(segments[0]));
       if (name) {
@@ -431,7 +453,7 @@ const server = http.createServer(async (req, res) => {
           res.writeHead(301, { Location: `/${encodeURIComponent(name)}${url.search}` });
           return res.end();
         }
-        return serveFile(req, res, path.join(PUBLIC_DIR, 'index.html'));
+        return serveIndex(req, res);
       }
     }
 

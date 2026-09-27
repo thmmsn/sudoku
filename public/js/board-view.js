@@ -261,6 +261,7 @@ export class BoardView {
     const wrong = g.isFull() && !this.finished ? new Set(g.wrongCells()) : null;
 
     this.boardEl.classList.toggle('solved', this.finished);
+    this.boardEl.classList.toggle('marking', !!mark); // lets the other digits dim
     for (let i = 0; i < 81; i++) {
       const c = COL[i];
       const r = ROW[i];

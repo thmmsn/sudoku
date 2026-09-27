@@ -9,11 +9,11 @@ import { entryEditor } from './entry.js';
 const label = (d) => (DIFFICULTY_LABELS[d] || DIFFICULTY_LABELS.unknown).toLowerCase();
 const dash = '–';
 
-const action = (text, fn) =>
+export const action = (text, fn) =>
   h('button', { type: 'button', class: 'link', onclick: fn }, text);
 
 /** A button that runs fn on the second tap within 3 s. */
-function twoTap(text, fn) {
+export function twoTap(text, fn) {
   let armed = null;
   const b = action(text, async () => {
     if (!armed) {
