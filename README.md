@@ -67,7 +67,7 @@ Krever Node 20.11 eller nyere. Ingen avhengigheter. I tillegg til variablene ove
 
 ## Brett
 
-Biblioteket er filene i `puzzles/`: 1196 unike brett, alle med løsning (løseren fyller inn der filen mangler den). Nytt brett tar et brett du ikke har løst på valgt nivå. Når alle er løst, gjentas de. Generatoren brukes bare hvis et nivå er helt tomt.
+Biblioteket er filene i `puzzles/`: 1187 unike brett (`bibliotek.jsonl` og `ekstra.csv`), alle med løsning (løseren fyller inn der filen mangler den). Eksempelfilene i `puzzles/eksempler/` lastes ikke inn. Se `puzzles/README.md`. Nytt brett tar et brett du ikke har løst på valgt nivå. Når alle er løst, gjentas de. Generatoren brukes bare hvis et nivå er helt tomt.
 
 Egne brett legges inn under **importer**:
 
@@ -88,10 +88,10 @@ Tekstimport (og filene i `puzzles/`) godtar:
 
 | Format                                        | Eksempel i repoet  |
 | --------------------------------------------- | ------------------ |
-| Ett brett per linje                           | `single.txt`, `2.csv` |
-| `brett,løsning` per linje                     | `puso.txt`         |
-| CSV med header `puzzle,solution,difficulty,…` | `1.csv`, `4.csv`   |
-| JSON-linjer `{"id","puzzle","solution",…}`    | `chunk_*.json`     |
+| Ett brett per linje                           | `ekstra.csv`, `eksempler/ett-brett-per-linje.txt` |
+| `brett,løsning` per linje                     | `eksempler/brett-og-losning.txt` |
+| CSV med header `puzzle,solution,difficulty,…` | `eksempler/csv-med-overskrift.csv` |
+| JSON-linjer `{"id","puzzle","solution",…}`    | `bibliotek.jsonl` |
 | JSON-liste med objekter eller strenger        |                    |
 | Innlimt 9×9-rutenett med `|`, `+`, `-`        |                    |
 
@@ -111,7 +111,7 @@ Motoren løser brettet slik et menneske ville gjort det, og bruker alltid den en
 
 I spillet heter nivåene *Veldig lett, Lett, Middels, Vanskelig, Ekspert*: Adressas fire navn, med «Veldig lett» lagt til foran.
 
-På brettene i `puzzles/` stemmer dette med 849 av 850 etiketter. Nesten alle (227 av 236) brettene merket `unknown` havner på nivå 5.
+I `bibliotek.jsonl` stemmer dette med alle 845 etikettene. Nesten alle (227 av 232) brettene merket `unknown` havner på nivå 5.
 
 ## API
 
@@ -146,7 +146,7 @@ Fordi profilene er åpne med vilje, kan hvem som helst endre eller slette en pro
 ## Struktur
 
 ```
-puzzles/                 innebygd bibliotek (dine filer)
+puzzles/                 brettene: bibliotek.jsonl, ekstra.csv, eksempler/ (se puzzles/README.md)
 public/index.html        ett HTML-skall for / og /<brukernavn>
 public/css/style.css     alt utseende og fargepalettene
 public/js/main.js        ruter: forside eller profil

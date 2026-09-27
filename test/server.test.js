@@ -53,10 +53,11 @@ async function call(method, url, body) {
   return { status: res.status, json, text, headers: res.headers };
 }
 
-test('library loads every unique puzzle from /puzzles', async () => {
+test('library loads every unique puzzle from /puzzles, not the examples', async () => {
   const r = await call('GET', '/api/library');
   assert.equal(r.status, 200);
-  assert.equal(r.json.puzzles.length, 1196);
+  assert.equal(r.json.puzzles.length, 1187); // bibliotek.jsonl 1077 + ekstra.csv 110
+  assert.ok(r.json.puzzles.every((p) => p.n < 80), 'the nearly finished example boards are not playable puzzles');
   const first = r.json.puzzles.find((p) => p.p === P);
   assert.equal(first.s, S);
   assert.equal(first.d, 'easy');

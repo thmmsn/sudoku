@@ -577,10 +577,10 @@ export function validatePuzzle(rawPuzzle, rawSolution) {
 // Import parser
 //
 // Accepts everything found in /puzzles:
-//   * one puzzle per line (81 chars)                      single.txt, 2.csv
-//   * "puzzle,solution" per line                          puso.txt
-//   * CSV with a header (puzzle,solution,difficulty,...)  1.csv, 4.csv
-//   * JSON lines {"id","puzzle","solution","difficulty"}  chunk_*.json
+//   * one puzzle per line (81 chars)                      ekstra.csv, eksempler/ett-brett-per-linje.txt
+//   * "puzzle,solution" per line                          eksempler/brett-og-losning.txt
+//   * CSV with a header (puzzle,solution,difficulty,...)  eksempler/csv-med-overskrift.csv
+//   * JSON lines {"id","puzzle","solution","difficulty"}  bibliotek.jsonl
 //   * a JSON array of such objects or strings
 // plus a pasted 9x9 grid with any separators ("|", "+", "-", spaces).
 
