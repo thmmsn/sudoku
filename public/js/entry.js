@@ -128,7 +128,7 @@ export function entryEditor({ draftKey, onSave }) {
       if (bad.has(i)) cls += ' wrong';
       if (el.className !== cls) el.className = cls;
       const text = values[i] ? String(values[i]) : '';
-      if (el.textContent !== text) el.textContent = text;
+      if (el.textContent !== text) el.replaceChildren(...(text ? [h('span', { class: 'd' }, text)] : []));
     }
   }
 

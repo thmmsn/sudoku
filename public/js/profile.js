@@ -317,11 +317,12 @@ export async function renderProfile(app, rawName) {
     const bright = h('input', { type: 'range', min: 0.2, max: 1, step: 0.05, value: ctx.settings.brightness, 'aria-label': 'Lysstyrke' });
     bright.addEventListener('input', () => ctx.updateSettings({ brightness: Number(bright.value) }));
 
+    // On/off switches: the knob slides right and lights up when on.
     const toggle = (key, text) => {
-      const input = h('input', { type: 'checkbox' });
+      const input = h('input', { type: 'checkbox', role: 'switch' });
       input.checked = ctx.settings[key];
       input.addEventListener('change', () => ctx.updateSettings({ [key]: input.checked }));
-      return h('label', { class: 'switch' }, input, h('span', {}, text));
+      return h('label', { class: 'switch' }, h('span', {}, text), input, h('span', { class: 'track', 'aria-hidden': 'true' }));
     };
 
     const link = (href, text) => h('a', { href, onclick: () => closeMenu() }, text);
