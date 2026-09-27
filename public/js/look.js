@@ -6,7 +6,7 @@
 // are stored in the profile like the other settings, and boot.js applies them
 // before the first paint so the screen never flashes.
 
-import { h } from './dom.js';
+import { h, icons } from './dom.js';
 import { action, twoTap } from './pages.js';
 
 /** Sliders. `css` is the custom property, `unit` is appended to the value. */
@@ -115,51 +115,10 @@ function paletteColor(css) {
 }
 
 // ---------------------------------------------------------------------------
-// The page (#utseende)
-
-// A sample position for the preview: givens, your digits, notes, a selected
-// cell, the digit it marks, and one wrong digit.
-const P = '.4....79..7..94....8.........57.6.....3...6...9......1..18...2.....1...38...2.4..';
-const S = '142368795576294138389571246415736982723189654698452371961843527254917863837625419';
-const WRONG = 58;
-const NOTES = { 2: 0b100000100, 5: 0b000001100, 11: 0b010000001, 27: 0b010101000, 36: 0b000110010, 45: 0b100010000, 70: 0b010100010 };
-const SELECTED = 40; // an empty cell you filled in with 8; it marks the other 8s
-const USER = [...P].map((c, i) => (c === '.' && i % 4 === 0 && !(i in NOTES) && i !== WRONG ? i : -1)).filter((i) => i >= 0);
-
-function previewBoard() {
-  const values = [...P].map((c) => (c === '.' ? 0 : Number(c)));
-  for (const i of USER) values[i] = Number(S[i]);
-  values[WRONG] = (Number(S[WRONG]) % 9) + 1;
-  const mark = values[SELECTED];
-  const board = h('div', { class: 'board marking', 'aria-hidden': 'true' });
-  for (let i = 0; i < 81; i++) {
-    const r = Math.floor(i / 9);
-    const c = i % 9;
-    const cls = ['cell'];
-    if (c === 2 || c === 5) cls.push('box-right');
-    if (r === 2 || r === 5) cls.push('box-bottom');
-    if (c === 8) cls.push('last-col');
-    if (r === 8) cls.push('last-row');
-    if (P[i] !== '.') cls.push('given');
-    if (i === SELECTED) cls.push('selected');
-    if (values[i] && values[i] === mark) cls.push('same');
-    if (i === WRONG) cls.push('wrong');
-    const cell = h('div', { class: cls.join(' ') });
-    if (values[i]) cell.append(h('span', { class: 'd' }, String(values[i])));
-    else if (NOTES[i]) {
-      const notes = h('div', { class: 'notes' });
-      for (let d = 1; d <= 9; d++) {
-        const on = NOTES[i] & (1 << (d - 1));
-        notes.append(h('span', { class: on && d === mark ? 'hit' : undefined }, on ? String(d) : ''));
-      }
-      cell.append(notes);
-    }
-    board.append(cell);
-  }
-  const pad = h('div', { class: 'pad', 'aria-hidden': 'true' },
-    [1, 2, 3, 4, 5, 6, 7, 8, 9].map((d) => h('span', { class: `key${d === mark ? ' focus' : ''}` }, String(d))));
-  return h('div', { class: 'look-preview' }, board, pad);
-}
+// The panel (#utseende)
+//
+// A sheet over the lower half of the screen while your own game shrinks into
+// the upper half, so every change shows on the real board as you make it.
 
 const GROUPS = [
   ['stil', 'stil'],
@@ -170,7 +129,8 @@ const GROUPS = [
   ['farger', 'farger'],
 ];
 
-export function renderLookPage(ctx) {
+/** opts: { onClose(), onReset() } */
+export function renderLookPanel(ctx, { onClose, onReset }) {
   const rows = {};
   for (const [id] of GROUPS) rows[id] = [];
 
@@ -180,7 +140,7 @@ export function renderLookPage(ctx) {
     input.addEventListener('change', () => ctx.updateSettings({ [w.key]: input.checked }));
     rows[w.group].push(
       h('li', {}, h('label', { class: 'switch' }, h('span', {}, w.label), input, h('span', { class: 'track', 'aria-hidden': 'true' }))),
-      h('li', { class: 'hint' }, 'Av: vanlig, flat stil uten gradienter, glød, glass og runde hjørner. Størrelser, linjer og farger under gjelder fortsatt.'));
+      h('li', { class: 'hint' }, 'Av: vanlig, flat stil uten gradienter, glød, glass og runde hjørner.'));
   }
 
   for (const n of LOOK_NUMBERS) {
@@ -204,10 +164,13 @@ export function renderLookPage(ctx) {
       input.value = ctx.settings[c.key] || paletteColor(c.css);
       reset.hidden = !ctx.settings[c.key];
     };
-    input.addEventListener('input', () => {
+    // 'input' while the picker is open; iOS may only send 'change'.
+    const pick = () => {
       ctx.updateSettings({ [c.key]: input.value.toLowerCase() });
       reset.hidden = false;
-    });
+    };
+    input.addEventListener('input', pick);
+    input.addEventListener('change', pick);
     reset.addEventListener('click', () => {
       ctx.updateSettings({ [c.key]: '' });
       sync();
@@ -216,15 +179,16 @@ export function renderLookPage(ctx) {
     rows.farger.push(h('li', { class: 'look-color' }, h('span', {}, c.label), reset, input));
   }
 
-  return h('div', { class: 'look' },
-    h('h1', {}, 'utseende'),
-    previewBoard(),
-    GROUPS.map(([id, title]) => [h('h2', {}, title), h('ul', { class: 'look-list' }, rows[id])]),
-    h('p', { class: 'hint' }, 'Fargene følger paletten til du endrer dem. Velger du en ny palett i menyen, starter fargene fra den paletten igjen.'),
+  return h('section', { class: 'tune', role: 'dialog', 'aria-label': 'Utseende' },
+    h('div', { class: 'tune-head' },
+      h('h2', {}, 'utseende'),
+      h('button', { type: 'button', class: 'tool', 'aria-label': 'Lukk', title: 'Lukk', onclick: onClose }, icons.clear())),
+    GROUPS.map(([id, title]) => [h('h3', {}, title), h('ul', { class: 'look-list' }, rows[id])]),
+    h('p', { class: 'hint' }, 'Endringene vises på brettet med en gang. Fargene følger paletten til du endrer dem; en ny palett i menyen starter fra sine egne farger.'),
     h('p', { class: 'row' },
       twoTap('tilbakestill alt', () => {
         ctx.updateSettings(lookDefaults(), { now: true });
-        dispatchEvent(new HashChangeEvent('hashchange')); // draw the page again with the defaults
+        onReset();
       }),
-      action('tilbake til brettet', () => (location.hash = '#spill'))));
+      action('ferdig', onClose)));
 }

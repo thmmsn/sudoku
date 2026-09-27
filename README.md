@@ -8,7 +8,7 @@ Laget for mobil i et mørkt rom. Skjermen viser bare brettet, en rad med tall og
 
 Like tall markeres tydelig: trykker du på en rute med et tall, får alle ruter med samme tall en svak vask i palettens aksentfarge og et glødende siffer, og notater med det tallet lyser også. Trykker du et tall på tastaturet uten at en rute er valgt, markeres det tallet på hele brettet. Trykk en gang til for å fjerne markeringen.
 
-På **utseende** kan du selv endre:
+På **utseende** kan du selv endre (endringene vises i sanntid på ditt eget brett; er ingen rute valgt, markeres tallet som står flest ganger, så du ser markeringen også):
 
 | Gruppe | Innstillinger |
 | --- | --- |
@@ -31,7 +31,7 @@ Menyen (⋯) åpnes som et ark nederst:
 - fem fargepaletter: svart (standard), rødt nattlys, rav, blå og lys
 - lysstyrke, som demper alt unntatt svart
 - av/på-brytere for «marker like tall» og «rydd notater»
-- **utseende**: en egen side der du justerer alt selv, med et forhåndsvisningsbrett som oppdateres mens du drar
+- **utseende**: et panel over nedre halvdel av skjermen mens ditt eget brett krymper inn i øvre halvdel, så hver endring vises på brettet med en gang
 - importer, statistikk og bytt profil
 - hint, nederst: **notater** fyller inn alle mulige kandidater, **fjern** tar bort kandidater fra notatene dine ett logisk steg om gangen, og **tall** setter inn ett riktig tall
 

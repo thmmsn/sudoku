@@ -7,7 +7,7 @@ import { h, icons, normalizeUsername } from './dom.js';
 import { api, mirrorProfile, mirroredProfile, queueGame, flushQueue, local, localCurrent, setLocalCurrent } from './api.js';
 import { BoardView } from './board-view.js';
 import { renderImport, renderStats } from './pages.js';
-import { lookDefaults, clampLook, applyLook, colorResets, renderLookPage } from './look.js';
+import { lookDefaults, clampLook, applyLook, colorResets, renderLookPanel } from './look.js';
 import { validatePuzzle, grade, puzzleId, solve, DIFFICULTIES, DIFFICULTY_LABELS } from './engine.js';
 import { solvedPuzzles } from './stats.js';
 
@@ -89,6 +89,14 @@ export async function renderProfile(app, rawName) {
     if (!offline) api.saveCurrent(name, mine).catch(() => {});
   }
 
+  // Same for settings: the browser's copy wins if newer (a change right
+  // before a reload may not have reached the server yet).
+  const mirrored = mirroredProfile(name)?.settings;
+  if (mirrored && (mirrored.savedAt || 0) > (profile.settings?.savedAt || 0)) {
+    profile.settings = mirrored;
+    if (!offline) api.saveSettings(name, mirrored).catch(() => {});
+  }
+
   const ctx = { name, profile, library, offline, settings: withDefaults(profile.settings), message: '' };
   applySettings(ctx.settings);
   mirrorProfile(profile);
@@ -104,11 +112,11 @@ export async function renderProfile(app, rawName) {
     clearTimeout(settingsTimer);
     settingsTimer = null;
     mirrorProfile(profile);
-    api.saveSettings(name, ctx.settings, { keepalive: true }).catch(() => {}); // kept locally if offline
+    api.saveSettings(name, profile.settings, { keepalive: true }).catch(() => {}); // kept locally if offline
   };
   ctx.updateSettings = (patch, { now = false } = {}) => {
     ctx.settings = withDefaults({ ...ctx.settings, ...patch });
-    profile.settings = ctx.settings;
+    profile.settings = { ...ctx.settings, savedAt: Date.now() }; // newest copy wins on load
     applySettings(ctx.settings);
     board?.render();
     if (board?.game) board.game.options.autoRemoveNotes = ctx.settings.autoRemoveNotes;
@@ -255,7 +263,9 @@ export async function renderProfile(app, rawName) {
     start(entry);
   };
 
-  const mountGame = async () => {
+  let mounting = null; // resolves when the game is on screen
+  const mountGame = () => (mounting = mountGameNow());
+  const mountGameNow = async () => {
     board = new BoardView({
       get settings() {
         return ctx.settings;
@@ -379,8 +389,45 @@ export async function renderProfile(app, rawName) {
   }
 
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeMenu();
+    if (e.key === 'Escape') {
+      closeMenu();
+      if (tune) location.hash = '#spill';
+    }
   });
+
+  // ---------------------------------------------------------------------------
+  // Appearance (#utseende): a panel over the lower half while the game shrinks
+  // into the upper half, so every change shows on your own board at once.
+
+  let tune = null;
+
+  async function openLook() {
+    if (!board) mountGame();
+    await mounting;
+    if (!board || location.hash !== '#utseende') return;
+    const panel = renderLookPanel(ctx, {
+      onClose: () => (location.hash = '#spill'),
+      onReset: () => {
+        closeLook();
+        openLook(); // draw the controls again with the defaults
+      },
+    });
+    if (tune) tune.replaceWith(panel);
+    else app.append(panel);
+    tune = panel;
+    main.querySelector('.game-page')?.classList.add('tuning');
+    board.hold(true);
+    board.previewMark(true); // show a marked digit, so the marking settings are visible
+  }
+
+  function closeLook() {
+    if (!tune) return;
+    tune.remove();
+    tune = null;
+    main.querySelector('.game-page')?.classList.remove('tuning');
+    board?.previewMark(false);
+    board?.hold(false);
+  }
 
   // ---------------------------------------------------------------------------
   // Shell
@@ -392,6 +439,8 @@ export async function renderProfile(app, rawName) {
     closeMenu();
     const hash = location.hash.slice(1);
     const page = ['importer', 'statistikk', 'utseende'].includes(hash) ? hash : 'spill';
+    if (page === 'utseende') return openLook();
+    closeLook();
     if (page !== 'spill' && board) {
       board.destroy();
       board = null;
@@ -416,7 +465,7 @@ export async function renderProfile(app, rawName) {
       }
       return;
     }
-    const content = page === 'importer' ? renderImport(ctx) : page === 'utseende' ? renderLookPage(ctx) : renderStats(ctx);
+    const content = page === 'importer' ? renderImport(ctx) : renderStats(ctx);
     main.replaceChildren(
       h('main', { class: 'page' },
         h('a', { class: 'back', href: '#spill', 'aria-label': 'Tilbake til brettet' }, icons.back()),

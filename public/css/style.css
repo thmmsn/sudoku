@@ -932,26 +932,78 @@ td.dim {
    Appearance page (#utseende)
    ========================================================================== */
 
-/* The preview stays in view while the sliders below it scroll. */
-.look-preview {
-  --w: min(100vw - 32px, 300px, 36dvh);
-  position: sticky;
-  top: calc(-1 * max(8px, env(safe-area-inset-top)));
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin: 0 -16px;
-  padding: 8px 16px 10px;
-  background: linear-gradient(var(--bg) 85%, transparent);
+/* The panel covers the lower half; the game shrinks into the upper half
+   and shows every change as it is made. */
+:root {
+  --tune-h: 52dvh;
 }
-.look-preview .pad {
+.game-page.tuning .game {
+  --w: min(100vw - 12px, 100dvh - var(--tune-h) - 96px, 560px);
+  height: calc(100% - var(--tune-h));
+}
+.game-page.tuning .tools {
+  display: none;
+}
+.game-page.tuning .pad {
   margin-top: 6px;
 }
-.look-preview .pad .key {
-  display: grid;
-  place-items: center;
-  height: 36px;
+.tune {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  height: var(--tune-h);
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 6px 20px max(20px, env(safe-area-inset-bottom));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  -webkit-backdrop-filter: blur(22px) saturate(150%);
+  backdrop-filter: blur(22px) saturate(150%);
+  border-radius: 22px 22px 0 0;
+  box-shadow: inset 0 1px 0 var(--frame-hi), 0 -30px 80px -40px var(--accent-glow);
+}
+.tune-head {
+  position: sticky;
+  top: -6px;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 -20px;
+  padding: 6px 8px 6px 20px;
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+}
+.tune h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--hi);
+}
+.tune h3 {
+  margin: 18px 0 4px;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--dim);
+}
+.tune .hint {
+  margin: 12px 0;
+  color: var(--dim);
+  font-size: 13px;
+}
+:root[data-style='flat'] .tune {
+  background: var(--surface);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  border-radius: 0;
+  border-top: 1px solid var(--box);
+  box-shadow: none;
+}
+:root[data-style='flat'] .tune-head {
+  background: var(--surface);
 }
 .look-list {
   list-style: none;
