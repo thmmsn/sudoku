@@ -26,6 +26,7 @@ export class BoardView {
     this.runningSince = null;
     this.cellKeys = new Array(81).fill('');
     this.flashed = new Set(); // cells changed by the last hint
+    this.focusDigit = 0; // digit picked on the pad with no cell selected
 
     this.onKey = (e) => this.handleKey(e);
     this.onVisibility = () => {
@@ -125,7 +126,12 @@ export class BoardView {
   }
 
   digit(d) {
-    if (this.selected < 0) return;
+    // No cell selected: the digit is marked on the whole board instead
+    // (tap it again to clear).
+    if (this.selected < 0) {
+      this.focusDigit = this.focusDigit === d ? 0 : d;
+      return this.render();
+    }
     const i = this.selected;
     this.edit(() => (this.noteMode ? this.game.toggleNote(i, d) : this.game.setValue(i, d)));
   }
@@ -139,6 +145,7 @@ export class BoardView {
   select(i) {
     if (!this.game || this.finished || this.held) return;
     this.selected = i;
+    this.focusDigit = 0;
     this.render();
   }
 
@@ -248,6 +255,8 @@ export class BoardView {
     const g = this.game;
     const sel = this.selected;
     const selValue = sel >= 0 ? g.values[sel] : 0;
+    // The digit to mark: the selected cell's digit, or one picked on the pad.
+    const mark = st.highlightSame && !this.finished ? selValue || this.focusDigit : 0;
     // A full board that is wrong shows which cells are wrong.
     const wrong = g.isFull() && !this.finished ? new Set(g.wrongCells()) : null;
 
@@ -263,23 +272,27 @@ export class BoardView {
       if (r === 8) cls.push('last-row');
       if (g.givens[i]) cls.push('given');
       if (i === sel) cls.push('selected');
-      if (st.highlightSame && selValue && v === selValue) cls.push('same');
+      if (mark && v === mark) cls.push('same');
       if (wrong?.has(i)) cls.push('wrong');
       if (this.flashed.has(i)) cls.push('hinted');
       const className = cls.join(' ');
       const el = this.cells[i];
       if (el.className !== className) el.className = className;
 
-      const key = v ? `v${v}` : `n${g.notes[i]}`;
+      const hit = mark && g.notes[i] & (1 << (mark - 1)) ? mark : 0;
+      const key = v ? `v${v}` : `n${g.notes[i]}:${hit}`;
       if (this.cellKeys[i] === key) continue;
       this.cellKeys[i] = key;
       const where = `Rad ${r + 1}, kolonne ${c + 1}`;
       if (v) {
-        el.textContent = String(v);
+        el.replaceChildren(h('span', { class: 'd' }, String(v)));
         el.setAttribute('aria-label', `${where}: ${v}`);
       } else if (g.notes[i]) {
         const notes = h('div', { class: 'notes' });
-        for (let d = 1; d <= 9; d++) notes.append(h('span', {}, g.notes[i] & (1 << (d - 1)) ? String(d) : ''));
+        for (let d = 1; d <= 9; d++) {
+          const on = g.notes[i] & (1 << (d - 1));
+          notes.append(h('span', { class: d === hit ? 'hit' : undefined }, on ? String(d) : ''));
+        }
         el.replaceChildren(notes);
         el.setAttribute('aria-label', `${where}: notater`);
       } else {
@@ -290,7 +303,10 @@ export class BoardView {
 
     // A digit that is on the board 9 times fades on the pad.
     const remaining = g.remaining();
-    this.keys.forEach((k, idx) => k.classList.toggle('done', remaining[idx + 1] === 0));
+    this.keys.forEach((k, idx) => {
+      k.classList.toggle('done', remaining[idx + 1] === 0);
+      k.classList.toggle('focus', mark === idx + 1);
+    });
     this.padEl.classList.toggle('notes-mode', this.noteMode);
     this.padEl.classList.toggle('gone', this.finished);
     this.pencilBtn.setAttribute('aria-pressed', String(this.noteMode));

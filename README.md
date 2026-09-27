@@ -6,6 +6,10 @@ Sudoku uten konto. Du velger et brukernavn, og `sudoku.eipi.dev/<brukernavn>` bl
 
 Laget for mobil i et mørkt rom. Skjermen viser bare brettet, en rad med tall og tre små ikoner: notater, angre og meny. Ingen klokke, ingen nivåvelger og ingen tekst mens du spiller. Tiden måles likevel, for statistikken.
 
+Like tall markeres tydelig: trykker du på en rute med et tall, får alle ruter med samme tall en svak vask i palettens aksentfarge og et glødende siffer, og notater med det tallet lyser også. Trykker du et tall på tastaturet uten at en rute er valgt, markeres det tallet på hele brettet. Trykk en gang til for å fjerne markeringen.
+
+Utseendet har en dempet glins: tallene er tegnet med en myk gradient ovenfra og ned, brettet har en gradientramme med avrundede hjørner og en svak glød i aksentfargen, og menyen er et nesten tett glassark. Når brettet er løst, glir et lysstreif over tallene. Alt holder seg svart og dempet.
+
 Visningen er låst til skjermen: ingenting ruller, zoomer eller kan dras bort. Bare sidene (import, statistikk) og menyen ruller, og bare inni seg selv. Ligger telefonen på siden, står tallene i en 3×3-blokk ved siden av brettet.
 
 Menyen (⋯) åpnes som et ark nederst:
@@ -13,7 +17,7 @@ Menyen (⋯) åpnes som et ark nederst:
 - nytt brett, nivå 1–5
 - fem fargepaletter: svart (standard), rødt nattlys, rav, blå og lys
 - lysstyrke, som demper alt unntatt svart
-- marker like tall, rydd notater
+- av/på-brytere for «marker like tall» og «rydd notater»
 - importer, statistikk og bytt profil
 - hint, nederst: **notater** fyller inn alle mulige kandidater, **fjern** tar bort kandidater fra notatene dine ett logisk steg om gangen, og **tall** setter inn ett riktig tall
 

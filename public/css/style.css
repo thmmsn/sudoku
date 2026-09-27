@@ -1,7 +1,12 @@
 /* Minimal, mobile-first, for playing in a dark room. Own design.
 
    Palettes are token sets on [data-palette]. The same selector also colours
-   the swatches in the menu, so each swatch shows its own palette. */
+   the swatches in the menu, so each swatch shows its own palette.
+
+   The sheen: digits are drawn with a soft top-to-bottom gradient, the board
+   has a gradient hairline frame and a faint glow in the palette's accent,
+   and the menu is frosted glass. It stays black and dim: highlights are
+   thin, glows are low, and nothing is brighter than the digits. */
 
 :root,
 [data-palette='natt'] {
@@ -20,6 +25,13 @@
   --ui-on: #9a9a9a;
   --text: #7a7a7a;
   --dim: #444;
+  --accent: #8fb3e0;
+  --d-hi: #b4b4b4; /* given digits, top and bottom of the gradient */
+  --d-lo: #5e5e5e;
+  --u-hi: #9bb6d8; /* your digits */
+  --u-lo: #45607f;
+  --frame-hi: rgb(255 255 255 / 0.22); /* board frame and glass edges */
+  --frame-lo: rgb(255 255 255 / 0.04);
 }
 
 /* Red only, to keep night vision. */
@@ -39,6 +51,13 @@
   --ui-on: #c4412f;
   --text: #8e2a22;
   --dim: #4a120c;
+  --accent: #e0513a;
+  --d-hi: #b8392c; /* given digits, top and bottom of the gradient */
+  --d-lo: #5e1710;
+  --u-hi: #f0654c; /* your digits */
+  --u-lo: #8a2a1d;
+  --frame-hi: rgb(255 90 60 / 0.28); /* board frame and glass edges */
+  --frame-lo: rgb(255 60 40 / 0.05);
 }
 
 [data-palette='rav'] {
@@ -57,6 +76,13 @@
   --ui-on: #c79440;
   --text: #8c6a2c;
   --dim: #4a3812;
+  --accent: #e0a84e;
+  --d-hi: #b58a45; /* given digits, top and bottom of the gradient */
+  --d-lo: #5a4219;
+  --u-hi: #f0bb60; /* your digits */
+  --u-lo: #8f6322;
+  --frame-hi: rgb(255 190 90 / 0.24); /* board frame and glass edges */
+  --frame-lo: rgb(255 170 60 / 0.05);
 }
 
 [data-palette='bla'] {
@@ -75,6 +101,13 @@
   --ui-on: #7fb0e6;
   --text: #6a7f99;
   --dim: #2c3c52;
+  --accent: #6aa8ff;
+  --d-hi: #9fb3cc; /* given digits, top and bottom of the gradient */
+  --d-lo: #4a5d75;
+  --u-hi: #8fc2ff; /* your digits */
+  --u-lo: #3b6fb0;
+  --frame-hi: rgb(140 190 255 / 0.26); /* board frame and glass edges */
+  --frame-lo: rgb(90 150 255 / 0.05);
 }
 
 /* For daylight. */
@@ -94,6 +127,23 @@
   --ui-on: #111;
   --text: #333;
   --dim: #999;
+  --accent: #2d6fd0;
+  --d-hi: #3a3a3a; /* given digits, top and bottom of the gradient */
+  --d-lo: #000000;
+  --u-hi: #3b78c0; /* your digits */
+  --u-lo: #1d4c80;
+  --frame-hi: rgb(0 0 0 / 0.22); /* board frame and glass edges */
+  --frame-lo: rgb(0 0 0 / 0.06);
+}
+
+/* Derived from each palette's accent (computed per element, so a swatch
+   with its own data-palette gets its own glow). */
+:root,
+[data-palette] {
+  --accent-soft: color-mix(in srgb, var(--accent) 13%, transparent);
+  --accent-faint: color-mix(in srgb, var(--accent) 7%, transparent);
+  --accent-ring: color-mix(in srgb, var(--accent) 55%, transparent);
+  --accent-glow: color-mix(in srgb, var(--accent) 40%, transparent);
 }
 
 *,
@@ -197,8 +247,10 @@ svg {
 }
 .board-area {
   flex: 1;
+  align-self: stretch;
   display: grid;
   place-items: center;
+  background: radial-gradient(60% 42% at 50% 45%, var(--accent-faint), transparent 72%);
 }
 
 .board {
@@ -207,7 +259,14 @@ svg {
   display: grid;
   grid-template-columns: repeat(9, 1fr);
   grid-template-rows: repeat(9, 1fr);
-  border: 1px solid var(--box);
+  /* Gradient hairline frame: lighter at the top, like light catching an edge. */
+  border: 1px solid transparent;
+  border-radius: 12px;
+  overflow: hidden;
+  background:
+    linear-gradient(var(--bg), var(--bg)) padding-box,
+    linear-gradient(180deg, var(--frame-hi), var(--frame-lo) 55%, var(--accent-soft)) border-box;
+  box-shadow: 0 24px 80px -40px var(--accent-glow);
   container-type: inline-size;
   touch-action: manipulation;
 }
@@ -236,26 +295,60 @@ svg {
 .cell.last-row {
   border-bottom: 0;
 }
+/* Digits: a soft vertical gradient instead of a flat colour. */
+.cell .d {
+  background: linear-gradient(180deg, var(--u-hi), var(--u-lo));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  padding: 0 0.04em; /* keeps the clip from shaving the edges */
+}
 .cell.given {
-  color: var(--given);
   font-weight: 400;
 }
+.cell.given .d {
+  background-image: linear-gradient(180deg, var(--d-hi), var(--d-lo));
+}
 .cell.selected {
-  background: var(--sel);
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px var(--accent-ring);
 }
+/* Same digit as the selected cell (or the digit picked on the pad): a faint
+   accent wash behind it and a glowing digit. Clear enough on a dimmed
+   screen, but not a bright block. */
 .cell.same {
-  color: var(--hi);
+  background: var(--accent-faint);
 }
-.cell.wrong {
-  color: var(--err);
+.cell.same .d {
+  background-image: linear-gradient(180deg, var(--hi), var(--accent));
+  filter: drop-shadow(0 0 0.18em var(--accent-glow));
+}
+.cell.wrong .d {
+  background-image: linear-gradient(180deg, var(--err), color-mix(in srgb, var(--err) 55%, black));
 }
 .cell.hinted {
-  background: var(--sel);
+  background: var(--accent-soft);
   transition: background 0.3s;
 }
-.board.solved .cell {
-  color: var(--hi);
-  transition: color 0.6s;
+/* Solved: one glint sweeps across the digits. */
+.board.solved .cell .d {
+  background-image: linear-gradient(110deg, var(--d-lo) 35%, var(--hi) 50%, var(--d-lo) 65%);
+  background-size: 300% 100%;
+  animation: glint 2.4s ease-in-out 1 both;
+}
+@keyframes glint {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: 0 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .board.solved .cell .d {
+    animation: none;
+    background-position: 50% 0;
+  }
 }
 
 .notes {
@@ -272,6 +365,11 @@ svg {
   color: var(--note);
   font-size: 2.5cqi;
 }
+.notes span.hit {
+  color: var(--accent);
+  font-weight: 500;
+  text-shadow: 0 0 0.5em var(--accent-glow);
+}
 
 .pad {
   width: var(--w);
@@ -286,20 +384,25 @@ svg {
   height: 56px;
   padding: 0;
   border: 0;
-  background: none;
-  color: var(--ui-on);
+  background: linear-gradient(180deg, var(--d-hi), var(--d-lo));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
   font-size: min(7.4vw, 30px);
   font-weight: 300;
+  transition: filter 0.15s;
 }
-.pad .key:active {
-  color: var(--hi);
+.pad .key:active,
+.pad .key.focus {
+  background-image: linear-gradient(180deg, var(--hi), var(--accent));
+  filter: drop-shadow(0 0 6px var(--accent-glow));
 }
 .pad.notes-mode .key {
-  color: var(--note);
+  background-image: linear-gradient(180deg, var(--u-hi), var(--u-lo));
   font-size: min(5vw, 20px);
 }
 .pad .key.done {
-  opacity: 0.2;
+  opacity: 0.15;
 }
 
 .tools {
@@ -322,7 +425,8 @@ svg {
   height: 22px;
 }
 .tool[aria-pressed='true'] {
-  color: var(--ui-on);
+  color: var(--accent);
+  filter: drop-shadow(0 0 6px var(--accent-glow));
 }
 
 /* ==========================================================================
@@ -332,10 +436,11 @@ svg {
 .backdrop {
   position: fixed;
   inset: 0;
-  background: rgb(0 0 0 / 0.5);
+  background: rgb(0 0 0 / 0.35);
 }
+/* Frosted glass with a light edge along the top. */
 .sheet {
-  --ring: var(--ui-on);
+  --ring: var(--accent);
   position: fixed;
   left: 0;
   right: 0;
@@ -344,9 +449,16 @@ svg {
   margin: 0 auto;
   display: grid;
   gap: 20px;
-  padding: 20px 20px max(20px, env(safe-area-inset-bottom));
-  background: var(--surface);
-  border-top: 1px solid var(--box);
+  padding: 22px 20px max(20px, env(safe-area-inset-bottom));
+  /* Nearly opaque: the blur is not available everywhere (and not under the
+     brightness filter), and the menu must stay readable without it. */
+  background: color-mix(in srgb, var(--surface) 93%, transparent);
+  -webkit-backdrop-filter: blur(22px) saturate(150%);
+  backdrop-filter: blur(22px) saturate(150%);
+  border-radius: 22px 22px 0 0;
+  box-shadow:
+    inset 0 1px 0 var(--frame-hi),
+    0 -30px 80px -40px var(--accent-glow);
   max-height: 88dvh;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -355,18 +467,24 @@ svg {
 .sheet .levels {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+  padding: 4px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--bg) 60%, transparent);
+  box-shadow: inset 0 0 0 1px var(--line);
 }
 .sheet .levels button {
-  height: 44px;
+  height: 42px;
   border: 0;
-  border-bottom: 1px solid var(--line);
+  border-radius: 10px;
   background: none;
   color: var(--text);
   font-size: 18px;
 }
 .sheet .levels button[aria-pressed='true'] {
-  color: var(--ui-on);
-  border-bottom-color: var(--ui-on);
+  color: var(--hi);
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px var(--accent-ring), 0 0 18px -6px var(--accent-glow);
 }
 .swatches {
   display: flex;
@@ -376,9 +494,9 @@ svg {
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  border: 1px solid var(--box);
-  background: var(--bg);
-  color: var(--user);
+  border: 1px solid var(--frame-hi);
+  background: radial-gradient(circle at 30% 22%, var(--frame-hi), transparent 55%), var(--bg);
+  color: var(--accent);
   font-size: 18px;
 }
 .swatch[aria-pressed='true'] {
@@ -396,10 +514,53 @@ svg {
   height: 20px;
   flex: none;
 }
+/* On/off switch: the knob slides right and the track lights up. */
 .switch {
+  position: relative;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
+  min-height: 36px;
+}
+.switch input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+.switch .track {
+  position: relative;
+  flex: none;
+  width: 46px;
+  height: 26px;
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--bg) 60%, transparent);
+  box-shadow: inset 0 0 0 1px var(--box);
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.switch .track::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--dim);
+  transition: transform 0.2s, background 0.2s;
+}
+.switch input:checked + .track {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 55%, transparent), color-mix(in srgb, var(--accent) 25%, transparent));
+  box-shadow: inset 0 0 0 1px var(--accent-ring), 0 0 16px -4px var(--accent-glow);
+}
+.switch input:checked + .track::after {
+  transform: translateX(20px);
+  background: var(--hi);
+}
+.switch input:focus-visible + .track {
+  outline: 1px solid var(--ui);
+  outline-offset: 2px;
 }
 .links {
   display: flex;
@@ -439,42 +600,32 @@ input[type='range'] {
   background: none;
 }
 input[type='range']::-webkit-slider-runnable-track {
-  height: 1px;
-  background: var(--box);
+  height: 2px;
+  border-radius: 1px;
+  background: linear-gradient(90deg, var(--line), var(--accent-ring));
 }
 input[type='range']::-moz-range-track {
-  height: 1px;
-  background: var(--box);
+  height: 2px;
+  border-radius: 1px;
+  background: linear-gradient(90deg, var(--line), var(--accent-ring));
 }
 input[type='range']::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   margin-top: -9px;
   border-radius: 50%;
-  background: var(--ui-on);
+  background: radial-gradient(circle at 35% 30%, var(--hi), var(--accent));
+  box-shadow: 0 0 12px -2px var(--accent-glow);
   border: 0;
 }
 input[type='range']::-moz-range-thumb {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
-  background: var(--ui-on);
+  background: radial-gradient(circle at 35% 30%, var(--hi), var(--accent));
+  box-shadow: 0 0 12px -2px var(--accent-glow);
   border: 0;
-}
-input[type='checkbox'] {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 18px;
-  height: 18px;
-  margin: 0;
-  border: 1px solid var(--box);
-  border-radius: 3px;
-  background: none;
-}
-input[type='checkbox']:checked {
-  background: var(--ui-on);
-  border-color: var(--ui-on);
 }
 
 /* ==========================================================================
@@ -506,9 +657,13 @@ input[type='checkbox']:checked {
 }
 .page h1 {
   margin: 4px 0 16px;
-  font-size: 18px;
-  font-weight: 400;
-  color: var(--ui-on);
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  background: linear-gradient(180deg, var(--hi), var(--dim));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 .page h2 {
   margin: 28px 0 8px;
@@ -533,15 +688,18 @@ input[type='checkbox']:checked {
   display: inline-grid;
   place-items: center;
   min-height: 44px;
-  padding: 0 18px;
-  border: 1px solid var(--box);
-  border-radius: 4px;
-  background: none;
-  color: var(--ui-on);
+  padding: 0 20px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background:
+    linear-gradient(var(--surface), var(--surface)) padding-box,
+    linear-gradient(180deg, var(--frame-hi), var(--frame-lo)) border-box;
+  color: var(--hi);
+  box-shadow: 0 8px 30px -18px var(--accent-glow);
 }
 .btn.quiet {
   color: var(--text);
-  border-color: var(--line);
+  box-shadow: none;
 }
 .btn[disabled] {
   opacity: 0.4;
@@ -564,7 +722,7 @@ textarea {
   margin-bottom: 10px;
   padding: 10px;
   border: 1px solid var(--line);
-  border-radius: 4px;
+  border-radius: 12px;
   background: var(--surface);
   color: var(--text);
   font: 16px/1.4 ui-monospace, Menlo, Consolas, monospace; /* 16px: no zoom on iOS */
@@ -623,8 +781,12 @@ td.dim {
 }
 .figures dd {
   margin: 0;
-  color: var(--ui-on);
-  font-size: 22px;
+  font-size: 26px;
+  font-weight: 400;
+  background: linear-gradient(180deg, var(--hi), var(--d-lo));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .notice-wrap {
@@ -654,13 +816,16 @@ td.dim {
   display: grid;
   place-content: center;
   padding: 16px;
+  background: radial-gradient(70% 40% at 50% 38%, var(--accent-faint), transparent 70%);
 }
+/* The name field: a hairline that fades out at both ends and lights up
+   while typing. */
 .landing form {
   display: flex;
   align-items: center;
   gap: 8px;
   width: min(280px, 100vw - 32px);
-  border-bottom: 1px solid var(--box);
+  background: linear-gradient(90deg, transparent, var(--frame-hi), transparent) bottom / 100% 1px no-repeat;
 }
 .landing input {
   flex: 1;
@@ -676,7 +841,7 @@ td.dim {
   outline: none;
 }
 .landing form:focus-within {
-  border-bottom-color: var(--ui);
+  background-image: linear-gradient(90deg, transparent, var(--accent-ring), transparent);
 }
 .landing .best {
   width: min(280px, 100vw - 32px);
