@@ -32,7 +32,7 @@ Menyen (⋯) åpnes som et ark nederst:
 - lysstyrke, som demper alt unntatt svart
 - av/på-brytere for «marker like tall» og «rydd notater»
 - **utseende**: et panel over nedre halvdel av skjermen mens ditt eget brett krymper inn i øvre halvdel, så hver endring vises på brettet med en gang
-- importer, statistikk og bytt profil
+- importer og statistikk
 - hint, nederst: **notater** fyller inn alle mulige kandidater, **fjern** tar bort kandidater fra notatene dine ett logisk steg om gangen, og **tall** setter inn ett riktig tall
 
 «Fjern» bruker samme teknikkstige som graderingen (først kandidater som kolliderer med tall på brettet, så låste kandidater, par, tripler, X-wing og swordfish). Den fjerner aldri riktig tall. Står det et feil tall på brettet, fjernes det først. Finner logikken ingenting, brukes løsningen på valgt rute. Hint teller i statistikken, og topplisten tar bare med spill uten hint.

@@ -373,8 +373,7 @@ export async function renderProfile(app, rawName) {
       h('nav', { class: 'links' },
         link('#utseende', 'utseende'),
         link('#importer', 'importer'),
-        link('#statistikk', 'statistikk'),
-        h('a', { href: '/?ny' }, name)),
+        link('#statistikk', 'statistikk')),
       board?.game && !board.finished ? hints : null,
     );
     backdrop.hidden = false;
