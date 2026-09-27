@@ -157,6 +157,16 @@ test('deleting a profile frees the username', async () => {
   assert.equal((await call('GET', '/api/check/borte')).json.exists, false);
 });
 
+test('the app shell has absolute link-preview URLs', async () => {
+  for (const url of ['/', '/ola', '/index.html']) {
+    const r = await call('GET', url);
+    assert.equal(r.status, 200, url);
+    assert.ok(!r.text.includes('%PUBLIC_URL%'), url);
+    assert.match(r.text, /og:image" content="https:\/\/sudoku\.eipi\.dev\/og-image\.png"/, url);
+  }
+  assert.equal((await fetch(`${base}/favicon.ico`)).headers.get('content-type'), 'image/x-icon');
+});
+
 test('routing: uppercase usernames redirect, bad paths are refused', async () => {
   const r = await fetch(`${base}/Ola?p=1`, { redirect: 'manual' });
   assert.equal(r.status, 301);

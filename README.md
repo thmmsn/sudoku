@@ -51,6 +51,20 @@ Appen er en PWA. Ved første besøk lagrer en service worker (`public/sw.js`) he
 
 Service workers krever HTTPS (eller `localhost`).
 
+### Ikoner og delebilde
+
+Alle ikoner lages fra to SVG-er: `public/icons/icon.svg` (appikonet: en 3×3-boks med en glødende 9 og to markerte 9-ere) og `public/favicon.svg` (bare den glødende 9-en, lesbar i 16 px). `node tools/make-icons.mjs` tegner dem med Chromium (Playwright) til:
+
+| Fil | Bruk |
+| --- | --- |
+| `icons/icon-192.png`, `icons/icon-512.png`, `icons/icon.svg` | app-ikon (Android, Chrome, installert app) |
+| `icons/maskable-512.png` | Android-ikon som kan beskjæres til sirkel, dråpe osv. |
+| `icons/apple-touch-icon.png` | iPhone/iPad hjemskjerm (180 px, fylt; iOS runder selv) |
+| `favicon.ico`, `favicon.svg`, `icons/favicon-16/32.png` | fanen i nettleseren |
+| `og-image.png` | forhåndsvisning når lenken deles (1200×630) |
+
+Manifestet har også tre skjermbilder (`public/screenshots/`) som vises i installasjonsvinduet på Android. Delebildet trenger full adresse; serveren fyller den inn fra `PUBLIC_URL` (standard `https://sudoku.eipi.dev`).
+
 ## Kjør
 
 ### Docker
@@ -70,6 +84,7 @@ Alle variabler er valgfrie. Legg egne verdier i `.env` (se `.env.example`):
 | `DATA_MAX_BYTES` | `1073741824` | Samlet størrelse på alle profiler (1 GB). Over dette avvises nye profiler og importer. |
 | `RATE_NEW_PROFILES` | `20` | Nye profiler per IP-adresse per time |
 | `RATE_IMPORTS` | `30` | Importer per IP-adresse per time |
+| `PUBLIC_URL` | `https://sudoku.eipi.dev` | Sidens offentlige adresse, brukt i forhåndsvisning av delte lenker |
 | `TRUST_PROXY` | `0` | Sett `1` bak en reverse proxy, så grensene bruker besøkendes adresse fra `X-Forwarded-For`. Ellers deler alle proxyens adresse. |
 
 Containeren kjører som `node` (ikke root) og har en helsesjekk.
@@ -172,6 +187,7 @@ public/js/landing.js     forsiden
 public/js/profile.js     profil: lasting, lagring, valg av brett, meny, paletter
 public/js/board-view.js  spillet (tegning og input)
 public/js/pages.js       Importer og Statistikk
+public/js/look.js        utseende: innstillinger som blir CSS-variabler, og siden for dem
 public/js/entry.js       skriv inn et brett
 public/sw.js             service worker (uten nett)
 public/manifest.webmanifest  installerbar app
@@ -181,5 +197,6 @@ public/js/stats.js       statistikk fra spillhistorikken
 public/js/api.js         API-klient med lokal kopi og kø når serveren er nede
 server/                  HTTP-server, bibliotek, fillagring, grenser og toppliste
 Dockerfile, compose.yaml Docker
+tools/make-icons.mjs     lager ikoner og delebilde fra SVG-ene
 test/                    node:test
 ```
