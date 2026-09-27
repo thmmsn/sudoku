@@ -1,0 +1,28 @@
+# docker compose up -d --build
+#
+# Every variable is optional; the defaults are shown after ":-". Put your own
+# values in a .env file next to this one (see .env.example).
+services:
+  sudoku:
+    build: .
+    image: sudoku-eipi:latest
+    restart: unless-stopped
+    ports:
+      - "${SUDOKU_BIND:-0.0.0.0}:${SUDOKU_PORT:-3000}:3000"
+    environment:
+      # Total size of all profiles. New profiles and imports are refused above it.
+      DATA_MAX_BYTES: ${DATA_MAX_BYTES:-1073741824}
+      # Per IP address per hour.
+      RATE_NEW_PROFILES: ${RATE_NEW_PROFILES:-20}
+      RATE_IMPORTS: ${RATE_IMPORTS:-30}
+      # 1 behind a reverse proxy (Caddy, nginx, Traefik), so limits use the
+      # visitor's address from X-Forwarded-For and not the proxy's.
+      TRUST_PROXY: ${TRUST_PROXY:-0}
+    volumes:
+      - ${SUDOKU_DATA:-sudoku-data}:/data
+      # The puzzle files from the repo, read at start. Add a file and restart;
+      # no rebuild needed. Without this line the copy in the image is used.
+      - ${SUDOKU_PUZZLES:-./puzzles}:/app/puzzles:ro
+
+volumes:
+  sudoku-data:

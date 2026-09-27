@@ -1,0 +1,762 @@
+/* Minimal, mobile-first, for playing in a dark room. Own design.
+
+   Palettes are token sets on [data-palette]. The same selector also colours
+   the swatches in the menu, so each swatch shows its own palette. */
+
+:root,
+[data-palette='natt'] {
+  color-scheme: dark;
+  --bg: #000;
+  --surface: #0a0a0a;
+  --line: #161616; /* thin cell lines */
+  --box: #333; /* box lines, just as thin, a little brighter */
+  --given: #7c7c7c;
+  --user: #5f7d9c;
+  --note: #4d4d4d;
+  --sel: #151515; /* selected cell */
+  --hi: #b0b0b0; /* digits equal to the selected one */
+  --err: #a8453c;
+  --ui: #555;
+  --ui-on: #9a9a9a;
+  --text: #7a7a7a;
+  --dim: #444;
+}
+
+/* Red only, to keep night vision. */
+[data-palette='rod'] {
+  color-scheme: dark;
+  --bg: #000;
+  --surface: #070000;
+  --line: #1c0404;
+  --box: #420c0c;
+  --given: #8e2a22;
+  --user: #c4412f;
+  --note: #5a1810;
+  --sel: #1c0505;
+  --hi: #ff6a50;
+  --err: #8a6a20;
+  --ui: #6a1c14;
+  --ui-on: #c4412f;
+  --text: #8e2a22;
+  --dim: #4a120c;
+}
+
+[data-palette='rav'] {
+  color-scheme: dark;
+  --bg: #000;
+  --surface: #080600;
+  --line: #1a1305;
+  --box: #3d2c0c;
+  --given: #8c6a2c;
+  --user: #c79440;
+  --note: #54401a;
+  --sel: #171005;
+  --hi: #f0c060;
+  --err: #b04a3a;
+  --ui: #5e4718;
+  --ui-on: #c79440;
+  --text: #8c6a2c;
+  --dim: #4a3812;
+}
+
+[data-palette='bla'] {
+  color-scheme: dark;
+  --bg: #000;
+  --surface: #02050a;
+  --line: #0c1420;
+  --box: #1f3350;
+  --given: #6a7f99;
+  --user: #5b95d6;
+  --note: #34485f;
+  --sel: #0c1624;
+  --hi: #a8d0ff;
+  --err: #b04a3a;
+  --ui: #3a5270;
+  --ui-on: #7fb0e6;
+  --text: #6a7f99;
+  --dim: #2c3c52;
+}
+
+/* For daylight. */
+[data-palette='lys'] {
+  color-scheme: light;
+  --bg: #f2f2f2;
+  --surface: #fff;
+  --line: #d6d6d6;
+  --box: #8a8a8a;
+  --given: #1a1a1a;
+  --user: #2d5f93;
+  --note: #7a7a7a;
+  --sel: #dcdcdc;
+  --hi: #000;
+  --err: #b3261e;
+  --ui: #777;
+  --ui-on: #111;
+  --text: #333;
+  --dim: #999;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-weight: 300;
+  font-size: 15px;
+  line-height: 1.45;
+  overscroll-behavior: none;
+  -webkit-touch-callout: none;
+}
+
+/* The view is locked to the screen: nothing scrolls, pans or bounces except
+   boxes meant to scroll (the pages and the menu), and those only inside
+   themselves. Brightness from the menu dims everything except black. */
+html,
+body {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  -webkit-text-size-adjust: 100%;
+}
+/* No double-tap zoom anywhere, without delaying taps. */
+button,
+a,
+input,
+label,
+textarea {
+  touch-action: manipulation;
+}
+#app {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  filter: brightness(var(--brightness, 1));
+}
+
+a {
+  color: var(--ui-on);
+  text-decoration: none;
+}
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+:focus {
+  outline: none;
+}
+:focus-visible {
+  outline: 1px solid var(--ui);
+  outline-offset: 2px;
+}
+[hidden] {
+  display: none !important;
+}
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+svg {
+  display: block;
+}
+
+/* ==========================================================================
+   Game
+   ========================================================================== */
+
+.shell {
+  position: absolute;
+  inset: 0;
+}
+.game-page {
+  height: 100%;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.game {
+  --w: min(100vw - 12px, 100dvh - 170px, 560px);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: max(8px, env(safe-area-inset-top)) 6px max(8px, env(safe-area-inset-bottom));
+}
+.board-area {
+  flex: 1;
+  display: grid;
+  place-items: center;
+}
+
+.board {
+  width: var(--w);
+  aspect-ratio: 1;
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  grid-template-rows: repeat(9, 1fr);
+  border: 1px solid var(--box);
+  container-type: inline-size;
+  touch-action: manipulation;
+}
+.cell {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  min-height: 0;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  color: var(--user);
+  font-size: 6.4cqi;
+  font-weight: 300;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.cell.box-right {
+  border-right-color: var(--box);
+}
+.cell.box-bottom {
+  border-bottom-color: var(--box);
+}
+.cell.last-col {
+  border-right: 0;
+}
+.cell.last-row {
+  border-bottom: 0;
+}
+.cell.given {
+  color: var(--given);
+  font-weight: 400;
+}
+.cell.selected {
+  background: var(--sel);
+}
+.cell.same {
+  color: var(--hi);
+}
+.cell.wrong {
+  color: var(--err);
+}
+.cell.hinted {
+  background: var(--sel);
+  transition: background 0.3s;
+}
+.board.solved .cell {
+  color: var(--hi);
+  transition: color 0.6s;
+}
+
+.notes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  width: 100%;
+  height: 100%;
+  padding: 6%;
+}
+.notes span {
+  display: grid;
+  place-items: center;
+  color: var(--note);
+  font-size: 2.5cqi;
+}
+
+.pad {
+  width: var(--w);
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  margin-top: 10px;
+}
+.pad.gone {
+  visibility: hidden;
+}
+.pad .key {
+  height: 56px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ui-on);
+  font-size: min(7.4vw, 30px);
+  font-weight: 300;
+}
+.pad .key:active {
+  color: var(--hi);
+}
+.pad.notes-mode .key {
+  color: var(--note);
+  font-size: min(5vw, 20px);
+}
+.pad .key.done {
+  opacity: 0.2;
+}
+
+.tools {
+  width: var(--w);
+  display: flex;
+  justify-content: space-between;
+}
+.tool {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ui);
+}
+.tool svg {
+  width: 22px;
+  height: 22px;
+}
+.tool[aria-pressed='true'] {
+  color: var(--ui-on);
+}
+
+/* ==========================================================================
+   Menu (bottom sheet)
+   ========================================================================== */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgb(0 0 0 / 0.5);
+}
+.sheet {
+  --ring: var(--ui-on);
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-width: 560px;
+  margin: 0 auto;
+  display: grid;
+  gap: 20px;
+  padding: 20px 20px max(20px, env(safe-area-inset-bottom));
+  background: var(--surface);
+  border-top: 1px solid var(--box);
+  max-height: 88dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+}
+.sheet .levels {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+}
+.sheet .levels button {
+  height: 44px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: none;
+  color: var(--text);
+  font-size: 18px;
+}
+.sheet .levels button[aria-pressed='true'] {
+  color: var(--ui-on);
+  border-bottom-color: var(--ui-on);
+}
+.swatches {
+  display: flex;
+  justify-content: space-between;
+}
+.swatch {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--box);
+  background: var(--bg);
+  color: var(--user);
+  font-size: 18px;
+}
+.swatch[aria-pressed='true'] {
+  outline: 1px solid var(--ring);
+  outline-offset: 3px;
+}
+.bright {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: var(--ui);
+}
+.bright svg {
+  width: 20px;
+  height: 20px;
+  flex: none;
+}
+.switch {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  padding-top: 4px;
+}
+.links a {
+  padding: 6px 0;
+}
+
+.hints {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  color: var(--dim);
+}
+.hints span {
+  margin-right: auto;
+}
+.hints button {
+  min-width: 64px;
+  min-height: 40px;
+  border: 0;
+  background: none;
+  color: var(--text);
+}
+
+/* Controls without bright browser defaults. */
+input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  flex: 1;
+  height: 32px;
+  background: none;
+}
+input[type='range']::-webkit-slider-runnable-track {
+  height: 1px;
+  background: var(--box);
+}
+input[type='range']::-moz-range-track {
+  height: 1px;
+  background: var(--box);
+}
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  margin-top: -9px;
+  border-radius: 50%;
+  background: var(--ui-on);
+  border: 0;
+}
+input[type='range']::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--ui-on);
+  border: 0;
+}
+input[type='checkbox'] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  border: 1px solid var(--box);
+  border-radius: 3px;
+  background: none;
+}
+input[type='checkbox']:checked {
+  background: var(--ui-on);
+  border-color: var(--ui-on);
+}
+
+/* ==========================================================================
+   Pages (import, statistics)
+   ========================================================================== */
+
+.page {
+  position: absolute;
+  inset: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: max(8px, env(safe-area-inset-top)) 16px max(32px, env(safe-area-inset-bottom));
+}
+.back {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-left: -12px;
+  color: var(--ui);
+}
+.back svg {
+  width: 22px;
+  height: 22px;
+}
+.page h1 {
+  margin: 4px 0 16px;
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--ui-on);
+}
+.page h2 {
+  margin: 28px 0 8px;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--dim);
+}
+.page p {
+  margin: 10px 0;
+}
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.page .row .btn:last-child {
+  margin-left: auto;
+}
+
+.btn {
+  display: inline-grid;
+  place-items: center;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid var(--box);
+  border-radius: 4px;
+  background: none;
+  color: var(--ui-on);
+}
+.btn.quiet {
+  color: var(--text);
+  border-color: var(--line);
+}
+.btn[disabled] {
+  opacity: 0.4;
+}
+button.link {
+  min-height: 36px;
+  padding: 0 8px;
+  border: 0;
+  background: none;
+  color: var(--ui-on);
+}
+button.link.armed {
+  color: var(--err);
+}
+
+textarea {
+  display: block;
+  width: 100%;
+  min-height: 140px;
+  margin-bottom: 10px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--text);
+  font: 16px/1.4 ui-monospace, Menlo, Consolas, monospace; /* 16px: no zoom on iOS */
+  resize: vertical;
+}
+textarea::placeholder,
+input::placeholder {
+  color: var(--dim);
+}
+
+.status,
+.hint {
+  color: var(--dim);
+  font-size: 13px;
+}
+.errors {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  max-height: 160px;
+  overflow: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+th,
+td {
+  padding: 8px 4px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  font-weight: 300;
+}
+th {
+  color: var(--dim);
+  font-size: 13px;
+}
+.n {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+tr.dim td,
+td.dim {
+  color: var(--dim);
+}
+
+.figures {
+  display: flex;
+  gap: 32px;
+  margin: 0 0 20px;
+}
+.figures dt {
+  color: var(--dim);
+  font-size: 13px;
+}
+.figures dd {
+  margin: 0;
+  color: var(--ui-on);
+  font-size: 22px;
+}
+
+.notice-wrap {
+  position: fixed;
+  top: max(8px, env(safe-area-inset-top));
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: var(--dim);
+  font-size: 13px;
+  pointer-events: none;
+}
+.notice-wrap p,
+.page .notice {
+  margin: 0;
+  color: var(--dim);
+  font-size: 13px;
+}
+
+/* ==========================================================================
+   Landing
+   ========================================================================== */
+
+.landing {
+  height: 100%;
+  touch-action: none;
+  display: grid;
+  place-content: center;
+  padding: 16px;
+}
+.landing form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: min(280px, 100vw - 32px);
+  border-bottom: 1px solid var(--box);
+}
+.landing input {
+  flex: 1;
+  min-width: 0;
+  height: 48px;
+  border: 0;
+  background: none;
+  color: var(--ui-on);
+  font: inherit;
+  font-size: 20px;
+}
+.landing input:focus-visible {
+  outline: none;
+}
+.landing form:focus-within {
+  border-bottom-color: var(--ui);
+}
+.landing .best {
+  width: min(280px, 100vw - 32px);
+  margin-top: 48px;
+  color: var(--dim);
+  font-size: 13px;
+}
+.landing .best td {
+  padding: 6px 0;
+  border-bottom: 0;
+}
+.landing .best .lvl {
+  width: 24px;
+  vertical-align: top;
+}
+.landing .best .t {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.landing .hint {
+  margin: 10px 0 0;
+}
+
+/* Typing in a puzzle (import page). */
+.entry {
+  --w: min(100vw - 32px, 528px, 58dvh);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 8px;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.entry .board {
+  touch-action: manipulation;
+}
+.entry .tools {
+  align-items: center;
+}
+.entry-status {
+  flex: 1;
+  margin: 0;
+  text-align: center;
+  color: var(--dim);
+  font-size: 13px;
+}
+.entry-status.bad {
+  color: var(--err);
+}
+.tool[disabled] {
+  opacity: 0.25;
+}
+.tool.armed {
+  color: var(--err);
+}
+
+/* A phone on its side: board to the left, digits as a 3x3 block to the right. */
+@media (orientation: landscape) and (max-height: 520px) {
+  .game {
+    --w: min(100dvh - 16px, 60vw);
+    display: grid;
+    grid-template-columns: auto auto;
+    grid-template-rows: 1fr auto;
+    justify-content: center;
+    align-items: center;
+    column-gap: 16px;
+    padding: 8px max(8px, env(safe-area-inset-right)) 8px max(8px, env(safe-area-inset-left));
+  }
+  .board-area {
+    grid-row: 1 / 3;
+  }
+  .pad {
+    width: min(40vw, 240px);
+    grid-template-columns: repeat(3, 1fr);
+    margin: 0;
+  }
+  .pad .key {
+    height: 52px;
+  }
+  .tools {
+    width: min(40vw, 240px);
+  }
+}
