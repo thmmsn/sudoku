@@ -2,13 +2,23 @@
 
 Sudoku uten konto. Du velger et brukernavn, og `sudoku.eipi.dev/<brukernavn>` blir spillprofilen din. Det finnes ingen passord: skriver noen inn et brukernavn som er i bruk, havner de på den profilen. Da kan de spille videre der (overta den) eller velge et annet navn.
 
-> **Status:** Motor, server/API, import og statistikklogikk er ferdige og testet. Brukergrensesnittet er ikke laget ennå. Det skal bygges etter skjermbilder av Adressas sudoku.
+## Status og visuelle kilder
+
+| Del | Kilde |
+| --- | --- |
+| Spillet (brett, tallrad, kontrollrad) | Skjermbilder av Adressas sudoku |
+| Forsiden (brukernavn, statistikk, topp 10) | Skjermbilde av ntnu.1024.no |
+| Importer, Statistikk, Innstillinger, mørk modus | Ingen kilde. Bruker forsidens visuelle språk |
+
+Fra skjermbildene: sjakkmønster på rutene, fete gitte tall og tynne egne tall, valgt rute mørkeblå, like tall blågrå, notater i 3×3, og tallknapper som er lyse når valgt rute allerede har et tall.
+
+Venter på skjermbilder: hvordan blyant-modus markeres som aktiv, hvordan feil vises, hvordan pause ser ut, og hva som skjer når brettet er løst. Linjen under tallknappene er en midlertidig erstatning.
 
 ## Kjør
 
 ```sh
 npm start          # http://localhost:3000
-npm test           # 39 tester: motor, spillmodell, statistikk, API
+npm test           # motor, spillmodell, statistikk, API
 ```
 
 Krever Node 20.11 eller nyere. Ingen avhengigheter.
@@ -53,6 +63,8 @@ Motoren løser brettet slik et menneske ville gjort det, og bruker alltid den en
 | 4    | Nakne/skjulte par og tripler               | `hard`      |
 | 5    | X-wing, swordfish, eller ikke løsbar logisk | `very-hard` |
 
+I spillet heter nivåene *Veldig lett, Lett, Middels, Vanskelig, Ekspert*: Adressas fire navn, med «Veldig lett» lagt til foran.
+
 På brettene i `puzzles/` stemmer dette med 849 av 850 etiketter. Nesten alle (227 av 236) brettene merket `unknown` havner på nivå 5.
 
 ## API
@@ -81,6 +93,13 @@ Fordi profilene er åpne med vilje, kan hvem som helst endre eller slette en pro
 
 ```
 puzzles/                 innebygd bibliotek (dine filer)
+public/index.html        ett HTML-skall for / og /<brukernavn>
+public/css/style.css     alt utseende, lys og mørk modus
+public/js/main.js        ruter: forside eller profil
+public/js/landing.js     forsiden
+public/js/profile.js     profil: lasting, lagring, valg av brett, sider
+public/js/board-view.js  spillet (tegning og input)
+public/js/pages.js       Importer, Statistikk, Innstillinger
 public/js/engine.js      notasjon, løser, gradering, generator, import-parser
 public/js/game-state.js  spillregler uten DOM: notater, angre, feil, hint
 public/js/stats.js       statistikk fra spillhistorikken

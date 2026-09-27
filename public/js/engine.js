@@ -8,12 +8,14 @@
 
 export const DIFFICULTIES = ['very-easy', 'easy', 'medium', 'hard', 'very-hard'];
 
+// Adressa's four labels (Lett, Middels, Vanskelig, Ekspert) plus "Veldig lett"
+// in front, since the puzzle files use five levels.
 export const DIFFICULTY_LABELS = {
   'very-easy': 'Veldig lett',
   easy: 'Lett',
   medium: 'Middels',
   hard: 'Vanskelig',
-  'very-hard': 'Veldig vanskelig',
+  'very-hard': 'Ekspert',
   unknown: 'Ukjent',
 };
 
