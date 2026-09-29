@@ -19,32 +19,29 @@
       <stop offset="0" stop-color="#ffffff"/>
       <stop offset="1" stop-color="#9cc2f5"/>
     </linearGradient>
-    <linearGradient id="dim" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#b9d3f5"/>
-      <stop offset="1" stop-color="#4f86cf"/>
-    </linearGradient>
     <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
       <feGaussianBlur stdDeviation="9" result="b"/>
       <feColorMatrix in="b" type="matrix" values="0 0 0 0 0.37  0 0 0 0 0.6  0 0 0 0 0.9  0 0 0 0.95 0" result="c"/>
       <feMerge><feMergeNode in="c"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
-    <clipPath id="box"><rect x="88" y="88" width="336" height="336" rx="34"/></clipPath>
-    <!-- A monoline 9 in a 100x100 box. -->
+    <linearGradient id="given" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#a6a6a6"/>
+      <stop offset="1" stop-color="#5a5a5a"/>
+    </linearGradient>
+    <!-- Monoline digits in a 100x100 box. -->
     <path id="nine" d="M71 39a21 21 0 1 1-42 0a21 21 0 1 1 42 0C71 66 60 84 36 88" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <path id="one" d="M40 26L54 14V86" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <path id="three" d="M31 24C37 14 63 12 66 29C68 42 58 49 46 49C60 49 71 56 69 70C67 87 40 91 30 79" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <path id="five" d="M67 15H36L33 45C41 39 55 38 63 44C72 51 72 71 63 80C53 90 36 88 29 79" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <path id="seven" d="M30 15H70L45 86" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
   </defs>
 
   <rect id="bg" width="512" height="512" rx="116" fill="#000"/>
   <rect width="512" height="512" rx="116" fill="url(#spot)"/>
 
+  <!-- One 3x3 box of a sudoku. Every digit appears once (a box can hold each
+       digit only once; test/pwa.test.js checks the data-digit values). -->
   <g id="mark">
-    <!-- the two other 9s, marked like on the board -->
-    <g clip-path="url(#box)">
-      <rect x="312" y="88" width="112" height="112" fill="#5e9ae6" fill-opacity="0.13"/>
-      <rect x="88" y="312" width="112" height="112" fill="#5e9ae6" fill-opacity="0.13"/>
-    </g>
-    <use href="#nine" transform="translate(333 109) scale(0.7)" stroke="url(#dim)" stroke-width="9" opacity="0.8"/>
-    <use href="#nine" transform="translate(109 333) scale(0.7)" stroke="url(#dim)" stroke-width="9" opacity="0.8"/>
-
     <!-- selected centre cell -->
     <rect x="200" y="200" width="112" height="112" fill="#5e9ae6" fill-opacity="0.2"/>
     <rect x="201.5" y="201.5" width="109" height="109" fill="none" stroke="#8fb3e0" stroke-opacity="0.7" stroke-width="3"/>
@@ -53,8 +50,14 @@
     <path d="M200 88V424M312 88V424M88 200H424M88 312H424" stroke="url(#line)" stroke-width="3"/>
     <rect x="88" y="88" width="336" height="336" rx="34" fill="none" stroke="url(#edge)" stroke-width="4"/>
 
+    <!-- given digits, dim -->
+    <use data-digit="5" href="#five" transform="translate(109 109) scale(0.7)" stroke="url(#given)" stroke-width="10"/>
+    <use data-digit="7" href="#seven" transform="translate(333 109) scale(0.7)" stroke="url(#given)" stroke-width="10"/>
+    <use data-digit="3" href="#three" transform="translate(109 333) scale(0.7)" stroke="url(#given)" stroke-width="10"/>
+    <use data-digit="1" href="#one" transform="translate(333 333) scale(0.7)" stroke="url(#given)" stroke-width="10"/>
+
     <!-- the glowing 9 -->
-    <use href="#nine" transform="translate(206 204) scale(1)" stroke="url(#digit)" stroke-width="10" filter="url(#glow)"/>
+    <use data-digit="9" href="#nine" transform="translate(206 204) scale(1)" stroke="url(#digit)" stroke-width="10" filter="url(#glow)"/>
   </g>
 
   <!-- light catching the top edge of the tile -->

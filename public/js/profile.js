@@ -322,6 +322,33 @@ export async function renderProfile(app, rawName) {
           },
         }, String(k + 1))));
 
+    // The two things most often wanted: start this board over, or get a new
+    // one on the same level. Below them, a new board on a chosen level.
+    const actions = h('div', { class: 'actions' },
+      board?.game && !board.finished
+        ? h('button', {
+            type: 'button',
+            class: 'btn quiet',
+            title: 'Fjerner alle tallene og notatene dine. Kan angres.',
+            onclick: () => {
+              closeMenu();
+              board.restartBoard();
+            },
+          }, 'start på nytt')
+        : null,
+      h('button', {
+        type: 'button',
+        class: 'btn',
+        onclick: () => {
+          closeMenu();
+          newGame(current || level);
+        },
+      }, 'nytt brett'));
+    const levelPicker = h('div', { class: 'level-picker' },
+      h('p', { class: 'caption' }, 'nytt brett på nivå'),
+      levels,
+      h('div', { class: 'level-scale', 'aria-hidden': 'true' }, h('span', {}, 'lettest'), h('span', {}, 'vanskeligst')));
+
     const swatches = h('div', { class: 'swatches', role: 'group', 'aria-label': 'Farger' },
       PALETTES.map(([id, label]) =>
         h('button', {
@@ -365,7 +392,8 @@ export async function renderProfile(app, rawName) {
         }, text)));
 
     sheet.replaceChildren(
-      levels,
+      actions,
+      levelPicker,
       swatches,
       h('div', { class: 'bright' }, icons.sun(), bright),
       toggle('highlightSame', 'marker like tall'),

@@ -440,6 +440,27 @@ svg {
   inset: 0;
   background: rgb(0 0 0 / 0.35);
 }
+/* Menu: start over / new board, then the level picker. */
+.sheet .actions {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 10px;
+}
+.sheet .caption {
+  margin: 0 0 8px;
+  color: var(--dim);
+  font-size: 13px;
+}
+.sheet .level-scale {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  padding: 0 6px;
+  color: var(--dim);
+  font-size: 12px;
+}
+
 /* Frosted glass with a light edge along the top. */
 .sheet {
   --ring: var(--accent);
@@ -452,9 +473,9 @@ svg {
   display: grid;
   gap: 20px;
   padding: 22px 20px max(20px, env(safe-area-inset-bottom));
-  /* Nearly opaque: the blur is not available everywhere (and not under the
+  /* Opaque: the blur is not available everywhere (and not under the
      brightness filter), and the menu must stay readable without it. */
-  background: color-mix(in srgb, var(--surface) 93%, transparent);
+  background: var(--surface);
   -webkit-backdrop-filter: blur(22px) saturate(150%);
   backdrop-filter: blur(22px) saturate(150%);
   border-radius: 22px 22px 0 0;

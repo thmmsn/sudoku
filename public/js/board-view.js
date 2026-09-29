@@ -168,6 +168,11 @@ export class BoardView {
     this.render();
   }
 
+  /** Clears every digit and note you have written. One undo step. */
+  restartBoard() {
+    this.edit(() => this.game.restart());
+  }
+
   toggleNoteMode() {
     this.noteMode = !this.noteMode;
     this.render();
