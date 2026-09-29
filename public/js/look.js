@@ -138,9 +138,7 @@ export function renderLookPanel(ctx, { onClose, onReset }) {
     const input = h('input', { type: 'checkbox', role: 'switch' });
     input.checked = ctx.settings[w.key];
     input.addEventListener('change', () => ctx.updateSettings({ [w.key]: input.checked }));
-    rows[w.group].push(
-      h('li', {}, h('label', { class: 'switch' }, h('span', {}, w.label), input, h('span', { class: 'track', 'aria-hidden': 'true' }))),
-      h('li', { class: 'hint' }, 'Av: vanlig, flat stil uten gradienter, glød, glass og runde hjørner.'));
+    rows[w.group].push(h('li', {}, h('label', { class: 'switch' }, h('span', {}, w.label), input, h('span', { class: 'track', 'aria-hidden': 'true' }))));
   }
 
   for (const n of LOOK_NUMBERS) {
@@ -184,7 +182,6 @@ export function renderLookPanel(ctx, { onClose, onReset }) {
       h('h2', {}, 'utseende'),
       h('button', { type: 'button', class: 'tool', 'aria-label': 'Lukk', title: 'Lukk', onclick: onClose }, icons.clear())),
     GROUPS.map(([id, title]) => [h('h3', {}, title), h('ul', { class: 'look-list' }, rows[id])]),
-    h('p', { class: 'hint' }, 'Endringene vises på brettet med en gang. Fargene følger paletten til du endrer dem; en ny palett i menyen starter fra sine egne farger.'),
     h('p', { class: 'row' },
       twoTap('tilbakestill alt', () => {
         ctx.updateSettings(lookDefaults(), { now: true });
