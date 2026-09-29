@@ -44,7 +44,10 @@ Spillereglene for input (samme tall tømmer ruten, notater ligger under et tall,
 
 ## Uten nett
 
-Appen er en PWA. Ved første besøk lagrer en service worker (`public/sw.js`) hele appen og brettbiblioteket i nettleseren. Etter det virker den uten nett, for eksempel på et fly.
+Appen er en PWA, og den installerbare appen er **profilen din**, ikke navnevalget. Første gang du åpner profilen med nett, lagrer en service worker (`public/sw.js`) hele appen og brettbiblioteket i nettleseren. Etter det virker den uten nett, for eksempel på et fly.
+
+- Profilsiden har sitt eget manifest (`/manifest.webmanifest?u=<navn>`) med `start_url` = profilen, så appen du installerer derfra, åpner alltid profilen. Forsiden har ikke noe manifest og registrerer ingen service worker.
+- Uten nett går både forsiden og appstart rett til profilen du brukte sist.
 
 - Pågående spill skrives til nettleseren ved hvert trekk. Serveren får det senest 2 s etter, eller med en gang når fanen lukkes. Ved oppstart vinner kopien som er nyest.
 - Ferdige spill som ikke når serveren, legges i kø og sendes neste gang.

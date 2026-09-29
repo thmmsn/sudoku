@@ -403,18 +403,31 @@ const SECURITY_HEADERS = {
     "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'",
 };
 
-// The app shell, with %PUBLIC_URL% filled in, kept in memory.
+// The app shell, with %PUBLIC_URL% filled in, kept in memory. Profile pages
+// link a manifest of their own (start_url = the profile), so installing the
+// app from your profile opens your profile; the landing page links none and
+// cannot be installed.
 const indexHtml = fs.readFileSync(path.join(PUBLIC_DIR, 'index.html'), 'utf8').replaceAll('%PUBLIC_URL%', PUBLIC_URL);
-const indexEtag = `"${crypto.createHash('sha1').update(indexHtml).digest('hex').slice(0, 16)}"`;
+const baseManifest = JSON.parse(fs.readFileSync(path.join(PUBLIC_DIR, 'manifest.webmanifest'), 'utf8'));
 
-function serveIndex(req, res) {
-  const headers = { 'Content-Type': TYPES['.html'], 'Cache-Control': 'no-cache', ETag: indexEtag, ...SECURITY_HEADERS };
-  if (req.headers['if-none-match'] === indexEtag) {
+function serveIndex(req, res, name = null) {
+  const link = name ? `<link rel="manifest" href="/manifest.webmanifest?u=${encodeURIComponent(name)}" />` : '';
+  const html = indexHtml.replace('%MANIFEST%', link);
+  const etag = `"${crypto.createHash('sha1').update(html).digest('hex').slice(0, 16)}"`;
+  const headers = { 'Content-Type': TYPES['.html'], 'Cache-Control': 'no-cache', ETag: etag, ...SECURITY_HEADERS };
+  if (req.headers['if-none-match'] === etag) {
     res.writeHead(304, headers);
     return res.end();
   }
   res.writeHead(200, headers);
-  res.end(req.method === 'HEAD' ? undefined : indexHtml);
+  res.end(req.method === 'HEAD' ? undefined : html);
+}
+
+/** The manifest for one profile: its own id and start page. */
+function serveManifest(req, res, name) {
+  const body = JSON.stringify({ ...baseManifest, id: `/${name}`, start_url: `/${encodeURIComponent(name)}?app` }, null, 2);
+  res.writeHead(200, { 'Content-Type': TYPES['.webmanifest'], 'Cache-Control': 'no-cache', ...SECURITY_HEADERS });
+  res.end(req.method === 'HEAD' ? undefined : body);
 }
 
 function serveFile(req, res, file, status = 200) {
@@ -446,6 +459,10 @@ const server = http.createServer(async (req, res) => {
 
     // "/" and "/<username>" both load the app shell; the client decides what to show.
     if (segments.length === 0 || url.pathname === '/index.html') return serveIndex(req, res);
+    if (url.pathname === '/manifest.webmanifest' && url.searchParams.has('u')) {
+      const name = normalizeUsername(url.searchParams.get('u'));
+      if (name) return serveManifest(req, res, name);
+    }
     if (segments.length === 1 && !segments[0].includes('.')) {
       const name = normalizeUsername(decodeURIComponent(segments[0]));
       if (name) {
@@ -453,7 +470,7 @@ const server = http.createServer(async (req, res) => {
           res.writeHead(301, { Location: `/${encodeURIComponent(name)}${url.search}` });
           return res.end();
         }
-        return serveIndex(req, res);
+        return serveIndex(req, res, name);
       }
     }
 

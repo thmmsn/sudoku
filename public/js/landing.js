@@ -14,7 +14,10 @@ export function renderLanding(app) {
   const params = new URLSearchParams(location.search);
   const last = normalizeUsername(local.get('lastProfile'));
   const standalone = params.has('app') || matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
-  if (last && standalone && !params.has('ny') && !params.has('p')) {
+  // Offline, the name screen is useless: go to the last profile, which works
+  // without a network.
+  const offline = navigator.onLine === false;
+  if (last && (standalone || offline) && !params.has('ny') && !params.has('p')) {
     location.replace(`/${encodeURIComponent(last)}`);
     return;
   }
@@ -32,6 +35,7 @@ export function renderLanding(app) {
     value: last || undefined,
   });
   const error = h('p', { class: 'hint', role: 'alert', hidden: true }, 'a–z 0–9 æ ø å - _ · 2–30 tegn');
+  const offlineNote = offline ? h('p', { class: 'hint' }, 'Du er uten nett. Første gang trengs nett.') : null;
   input.addEventListener('input', () => (error.hidden = true));
   const best = h('div', { class: 'best' });
 
@@ -52,6 +56,7 @@ export function renderLanding(app) {
       input,
       h('button', { class: 'tool', type: 'submit', 'aria-label': 'Gå' }, icons.next())),
       error,
+      offlineNote,
       best));
 
   // Public best times: per level 1-5, the three fastest players (library

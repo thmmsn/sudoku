@@ -55,7 +55,7 @@ test('icons: apple-touch 180, favicons, .ico and the share image', () => {
   assert.deepEqual([ico.readUInt16LE(0), ico.readUInt16LE(2)], [0, 1], 'ico header');
   assert.ok(ico.readUInt16LE(4) >= 2, 'several sizes in the .ico');
   const html = fs.readFileSync(path.join(pub, 'index.html'), 'utf8');
-  for (const tag of ['og:image', 'og:title', 'twitter:card', 'apple-touch-icon', 'manifest', 'favicon.ico']) assert.ok(html.includes(tag), tag);
+  for (const tag of ['og:image', 'og:title', 'twitter:card', 'apple-touch-icon', '%MANIFEST%', 'favicon.ico']) assert.ok(html.includes(tag), tag);
 });
 
 test('the app icon shows a valid sudoku box: no digit twice', () => {

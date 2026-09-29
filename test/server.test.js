@@ -167,6 +167,21 @@ test('the app shell has absolute link-preview URLs', async () => {
   assert.equal((await fetch(`${base}/favicon.ico`)).headers.get('content-type'), 'image/x-icon');
 });
 
+test('only profile pages are installable, each as its own app', async () => {
+  const landing = await call('GET', '/');
+  assert.ok(!landing.text.includes('rel="manifest"'), 'the name screen has no manifest');
+  assert.ok(!landing.text.includes('%MANIFEST%'));
+  const prof = await call('GET', '/ola');
+  assert.match(prof.text, /<link rel="manifest" href="\/manifest\.webmanifest\?u=ola" \/>/);
+  const m = await call('GET', '/manifest.webmanifest?u=ola');
+  assert.equal(m.status, 200);
+  assert.equal(m.json.start_url, '/ola?app');
+  assert.equal(m.json.id, '/ola');
+  assert.equal(m.json.display, 'standalone');
+  assert.ok(m.json.icons.length >= 3);
+  assert.equal((await call('GET', '/manifest.webmanifest?u=..')).json.start_url, '/?app', 'bad names get the plain manifest');
+});
+
 test('routing: uppercase usernames redirect, bad paths are refused', async () => {
   const r = await fetch(`${base}/Ola?p=1`, { redirect: 'manual' });
   assert.equal(r.status, 301);
