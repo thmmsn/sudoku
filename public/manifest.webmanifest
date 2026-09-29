@@ -2,7 +2,7 @@
   "id": "/",
   "name": "Sudoku",
   "short_name": "Sudoku",
-  "description": "Sudoku for mørke rom. Uten konto, virker uten nett.",
+  "description": "Sudoku",
   "lang": "nb",
   "dir": "ltr",
   "start_url": "/?app",

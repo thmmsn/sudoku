@@ -473,7 +473,7 @@ export async function renderProfile(app, rawName) {
       board = null;
     }
     const notice = [];
-    if (ctx.offline) notice.push(h('p', { class: 'notice' }, 'frakoblet · lagres lokalt'));
+    if (ctx.offline) notice.push(h('p', { class: 'notice' }, 'frakoblet'));
     if (ctx.message) {
       notice.push(h('p', { class: 'notice' }, ctx.message));
       ctx.message = '';

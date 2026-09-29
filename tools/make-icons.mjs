@@ -4,7 +4,7 @@
 //                              apple-touch-icon.png (180)   (full square; iOS rounds it)
 //                              maskable-512.png             (full bleed, mark inside the safe zone)
 //   public/favicon.svg     ->  icons/favicon-16.png, icons/favicon-32.png, favicon.ico (16, 32, 48)
-//   (built here)           ->  og-image.png (1200x630, for links shared on social media and chat)
+//   (built here)           ->  og-image.png (1200x630, no text, for links shared on social media and chat)
 //
 // Edit the SVGs, then run:  node tools/make-icons.mjs
 // Needs Playwright with Chromium (not a dependency of the app). Set
@@ -50,35 +50,21 @@ for (const size of [16, 32, 48]) {
 }
 fs.writeFileSync(path.join(PUB, 'favicon.ico'), makeIco(ico));
 
-// Share image: the mark on the left, the name and three short lines on the right.
-const mark = icon.replace('<svg ', '<svg width="470" height="470" ');
+// Share image: only the mark, centred in its glow. No text.
+const mark = square(icon)
+  .replace(/<rect id="bg"[^>]*\/>/, '') // the page's own glow shows through instead
+  .replace(/<rect[^>]*fill="url\(#spot\)"[^>]*\/>/, '')
+  .replace('<svg ', '<svg width="600" height="600" ');
 await page.setViewportSize({ width: 1200, height: 630 });
 await page.setContent(`<!doctype html><meta charset="utf-8">
 <style>
-  html, body { margin: 0; width: 1200px; height: 630px; background: #000; overflow: hidden; }
+  html, body { margin: 0; width: 1200px; height: 630px; overflow: hidden; }
   body {
-    display: flex; align-items: center; gap: 64px; padding: 0 90px; box-sizing: border-box;
-    font-family: 'Liberation Sans', 'DejaVu Sans', Arial, sans-serif; color: #9a9a9a;
-    background:
-      radial-gradient(45% 70% at 24% 50%, rgba(94,154,230,.22), transparent 70%),
-      radial-gradient(40% 60% at 80% 40%, rgba(143,179,224,.07), transparent 70%), #000;
+    display: grid; place-items: center;
+    background: radial-gradient(38% 62% at 50% 50%, rgba(94,154,230,.2), transparent 72%), #000;
   }
-  .frame { position: absolute; inset: 0; border: 1px solid transparent; pointer-events: none;
-    background: linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,0) 40%) border-box;
-    -webkit-mask: linear-gradient(#000 0 0) padding-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
-  h1 { margin: 0 0 18px; font-size: 104px; font-weight: 400; letter-spacing: -0.035em; line-height: 1;
-    background: linear-gradient(180deg, #ffffff 20%, #7d8ea5); -webkit-background-clip: text; color: transparent; }
-  p { margin: 0 0 10px; font-size: 32px; letter-spacing: -0.01em; }
-  .url { margin-top: 34px; font-size: 28px; color: #8fb3e0; text-shadow: 0 0 18px rgba(94,154,230,.6); }
 </style>
-<div class="frame"></div>
-${mark}
-<div>
-  <h1>sudoku</h1>
-  <p>for mørke rom</p>
-  <p>uten konto · virker uten nett</p>
-  <p class="url">sudoku.eipi.dev</p>
-</div>`);
+${mark}`);
 fs.writeFileSync(path.join(PUB, 'og-image.png'), await page.screenshot({ type: 'png' }));
 
 await browser.close();

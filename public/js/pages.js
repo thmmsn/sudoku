@@ -112,7 +112,7 @@ export function renderImport(ctx) {
   });
   const pasteBox = h('div', { hidden: true },
     form,
-    h('p', { class: 'hint' }, '81 tegn per brett, . eller 0 for tom rute. Også brett,løsning, CSV og JSON. Hvert brett må ha én løsning.'));
+    h('p', { class: 'hint' }, '. eller 0 = tom rute'));
   const toggle = action('lim inn tekst eller fil', () => {
     pasteBox.hidden = !pasteBox.hidden;
     toggle.hidden = true;

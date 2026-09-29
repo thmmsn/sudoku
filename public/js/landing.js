@@ -35,7 +35,7 @@ export function renderLanding(app) {
     value: last || undefined,
   });
   const error = h('p', { class: 'hint', role: 'alert', hidden: true }, 'a–z 0–9 æ ø å - _ · 2–30 tegn');
-  const offlineNote = offline ? h('p', { class: 'hint' }, 'Du er uten nett. Første gang trengs nett.') : null;
+  const offlineNote = offline ? h('p', { class: 'hint' }, 'uten nett') : null;
   input.addEventListener('input', () => (error.hidden = true));
   const best = h('div', { class: 'best' });
 
