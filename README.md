@@ -27,7 +27,8 @@ Visningen er låst til skjermen: ingenting ruller, zoomer eller kan dras bort. B
 
 Menyen (⋯) åpnes som et ark nederst:
 
-- nytt brett, nivå 1–5
+- **start på nytt** (tømmer dine tall og notater på dette brettet, kan angres) og **nytt brett** (samme nivå)
+- nytt brett på et valgt nivå, 1 (lettest) til 5 (vanskeligst)
 - fem fargepaletter: svart (standard), rødt nattlys, rav, blå og lys
 - lysstyrke, som demper alt unntatt svart
 - av/på-brytere for «marker like tall» og «rydd notater»

@@ -57,3 +57,11 @@ test('icons: apple-touch 180, favicons, .ico and the share image', () => {
   const html = fs.readFileSync(path.join(pub, 'index.html'), 'utf8');
   for (const tag of ['og:image', 'og:title', 'twitter:card', 'apple-touch-icon', 'manifest', 'favicon.ico']) assert.ok(html.includes(tag), tag);
 });
+
+test('the app icon shows a valid sudoku box: no digit twice', () => {
+  const svg = fs.readFileSync(path.join(pub, 'icons', 'icon.svg'), 'utf8');
+  const digits = [...svg.matchAll(/data-digit="(\d)"/g)].map((m) => m[1]);
+  assert.ok(digits.length >= 2, 'the icon marks its digits with data-digit');
+  assert.equal(new Set(digits).size, digits.length, `digits in the box: ${digits.join(', ')}`);
+  assert.equal((svg.match(/<use /g) || []).length, digits.length, 'every drawn digit has data-digit');
+});
